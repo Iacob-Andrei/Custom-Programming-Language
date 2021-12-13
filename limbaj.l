@@ -17,7 +17,7 @@
 "while"                              {return WHILE;}
 "end_while"                          {return EWHILE;}
 
-"do"                                 {return DOW;}
+"do"                                 {return DOWHILE;}
 
 "for"                                {return FOR;}
 "end_for"                            {return EFOR;}
