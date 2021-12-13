@@ -4,6 +4,9 @@
 %}
 %option noyywrap
 %%
+
+">"|"<"|"<="|">="|"!="|"=="          {return OPLOGIC;}
+
 "int"|"float"|"char"|"string"|"bool" {return TIP;}
 "const"                              {return CONST;}
 
