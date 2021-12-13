@@ -4,7 +4,7 @@ extern FILE* yyin;
 extern char* yytext;
 extern int yylineno;
 %}
-%token ID TIP BGIN END NR CONST
+%token ID TIP NR CONST FCT EFCT IF ELSEIF ENDIF WHILE EWHILE FOR EFOR DOW BGNGLO ENDGLO BGNFCT ENDFCT MAIN ENDMAIN
 
 %left '-'
 %left '+'
@@ -17,32 +17,32 @@ progr: declaratii bloc {printf("program corect sintactic\n");}
      ;
 
 declaratii :  declaratie ';'
-	   | declaratii declaratie ';'
-	   ;
-	   
+          | declaratii declaratie ';'
+          ;
+
 declaratie : TIP nume
-           | TIP ID '(' lista_param ')'
-           | TIP ID '(' ')'
-           | CONST TIP cons
-           ;
-           
+          | TIP ID '(' lista_param ')'
+          | TIP ID '(' ')'
+          | CONST TIP cons
+          ;
+
 cons : cons ',' ID '=' NR            
      | ID '=' NR 
      ;
      
 nume : ID
-	 | nume ',' ID
-	 ;
-	 
+	| nume ',' ID
+	;
+
 lista_param : param
-            | lista_param ','  param 
-            ;
-                            
+          | lista_param ','  param 
+          ;
+
 param : TIP ID
-      ; 
-      
+     ; 
+
 /* bloc */
-bloc : BGIN list END  
+bloc : MAIN list ENDMAIN  
      ;
      
 /* lista instructiuni */
@@ -52,22 +52,21 @@ list :  statement ';'
 
 /* instructiune */
 statement: | ID '(' lista_apel ')'
-           | ID '=' expresie
-           ;
-        
+          | ID '=' expresie
+          ;
+     
 expresie : expresie '+' expresie
-		 | expresie '-' expresie
-		 | expresie '*' expresie
-		 | expresie '/' expresie
-		 | '(' expresie ')'
-		 | ID
-		 | NR
-		 ;
+          | expresie '-' expresie
+          | expresie '*' expresie
+          | expresie '/' expresie
+          | '(' expresie ')'
+          | ID
+          | NR
+          ;
 
-	  
 lista_apel : NR
-           | lista_apel ',' NR
-           ;
+          | lista_apel ',' NR
+          ;
 %%
 int yyerror(char * s){
 printf("eroare: %s la linia:%d\n",s,yylineno);

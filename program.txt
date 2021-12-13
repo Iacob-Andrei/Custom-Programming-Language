@@ -1,8 +1,8 @@
 const int @b = 5, @v = 124 ;
 int @a, @b;
-begin_progr 
+main 
 @b = 5;
 @f = @x+23*2+@b/(@a*23);
 @x = @x+(23*5+@z*3);
-end_progr
+end_main
 
