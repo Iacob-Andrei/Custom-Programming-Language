@@ -20,11 +20,11 @@
 "while"                              {return WHILE;}
 "end_while"                          {return EWHILE;}
 
-"do"                                 {return DOWHILE;}
+"do"                                 {return DO;}
 
 "for"                                {return FOR;}
 "end_for"                            {return EFOR;}
-
+"to"                                 {return TO;}
 "begin_global"                       {return BGNGLO;}
 "end_global"                         {return ENDGLO;}
 

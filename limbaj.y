@@ -4,12 +4,13 @@ extern FILE* yyin;
 extern char* yytext;
 extern int yylineno;
 %}
-%token ID TIP NR CONST FCT EFCT IF ELSEIF ENDIF WHILE EWHILE FOR EFOR DOWHILE BGNGLO ENDGLO BGNFCT ENDFCT MAIN ENDMAIN OPLOGIC
+%token ID TIP NR CONST FCT EFCT IF ELSEIF ENDIF WHILE EWHILE FOR EFOR TO DO BGNGLO ENDGLO BGNFCT ENDFCT MAIN ENDMAIN OPLOGIC
 
 %left '-'
 %left '+'
 %left '/'
 %left '*'
+%left OPLOGIC
 
 %start progr
 %%
@@ -70,22 +71,34 @@ bloc3 : MAIN list ENDMAIN
      ;
      
 /* lista instructiuni */
-list :  statement ';' 
+list :  statement ';'
      | list statement ';'
+     | apel_functie
+     | list apel_functie
      ;
 
 /* instructiune */
-statement: | ID '(' lista_apel ')'
-          | ID '=' expresie
-          | IF '(' conditie ')' statement ENDIF
-          | IF '(' conditie ')' statement ELSEIF statement ENDIF
-          | WHILE '(' conditie ')' statement EWHILE
-          | DOWHILE statement EWHILE '(' conditie ')'
-          | FOR /* to do */ EFOR 
+statement: | ID '(' lista_apel ')' 
+          | ID '=' expresie 
+          ;
+     
+apel_functie: IF '(' conditie ')' list ENDIF
+               | IF '(' conditie ')' list ELSEIF list ENDIF
+               | WHILE '(' conditie ')' list EWHILE
+               | DO list EWHILE '(' conditie ')'
+               | FOR ID '=' NR TO ID DO list EFOR
+               | FOR ID '=' NR TO ID NR list EFOR
+               | FOR ID '=' ID TO ID DO list EFOR
+               | FOR ID '=' ID TO ID NR list EFOR
+               ;
+
+
+
+conditie  : '$' '(' expresie ')'
+          | conditie OPLOGIC conditie
           ;
 
-conditie : // to do
-          ; 
+
 expresie : expresie '+' expresie
           | expresie '-' expresie
           | expresie '*' expresie
@@ -97,6 +110,9 @@ expresie : expresie '+' expresie
 
 lista_apel : NR
           | lista_apel ',' NR
+          | ID
+          | lista_apel ',' ID
+          | /*epsilon*/
           ;
 %%
 int yyerror(char * s){
