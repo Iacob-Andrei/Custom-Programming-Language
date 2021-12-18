@@ -21,6 +21,15 @@ function #func2()
 	end_for
 end_function
 
+
+def class %clasa1 
+	int @a, @b = 5;
+	function #func1(string,int)
+		@b = 5;
+	end_function
+end_defclass
+
+
 end_fct
 
 

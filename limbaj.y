@@ -4,7 +4,11 @@ extern FILE* yyin;
 extern char* yytext;
 extern int yylineno;
 %}
-%token ID IDFUNC IDCLASS TIP NR CONST FCT EFCT IF ELSEIF ENDIF WHILE EWHILE FOR EFOR TO DO BGNGLO ENDGLO BGNFCT ENDFCT MAIN ENDMAIN OPLOGIC OPREL
+%token ID IDFUNC IDCLASS TIP NR CONST 
+%token FCT EFCT CLASS ENDCLASS 
+%token IF ELSEIF ENDIF WHILE EWHILE FOR EFOR TO DO
+%token BGNGLO ENDGLO BGNFCT ENDFCT MAIN ENDMAIN 
+%token OPLOGIC OPREL 
 
 %left '-'
 %left '+'
@@ -24,12 +28,12 @@ bloc1 : BGNGLO declaratii_globale ENDGLO
      | /*epsilon*/
      ;
 
-declaratii_globale :  declaratie ';'
-          | declaratii_globale declaratie ';'
+declaratii_globale :  declaratie 
+          | declaratii_globale declaratie 
           ;
 
-declaratie : TIP nume
-          | CONST TIP cons
+declaratie : TIP nume ';'
+          | CONST TIP cons ';'
           ;
 
 cons : cons ',' ID '=' NR            
@@ -46,13 +50,23 @@ nume : ID '=' NR
 
 // declarari class
 
-bloc2 : BGNFCT functii ENDFCT
+bloc2 : BGNFCT declarari_bloc_2 ENDFCT
      | /*epsilon*/
      ;
 
-functii : functii declaratie_functie
-          |declaratie_functie
-          ;
+declarari_bloc_2    : declarari_bloc_2 declaratie_functie
+                    | declarari_bloc_2 declarare_class
+                    | declarare_class
+                    | declaratie_functie
+                    ;
+
+declarare_class : CLASS IDCLASS  bloc_class ENDCLASS
+
+bloc_class     : bloc_class declaratie_functie
+               | bloc_class declaratie
+               | declaratie_functie
+               | declaratie 
+               ;
 
 declaratie_functie : FCT IDFUNC '(' lista_tip_parametrii ')' bloc_functie EFCT
 
