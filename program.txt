@@ -1,7 +1,7 @@
 begin_global
 
 const int @b = 5, @v = 124 ;
-int @a, @b;
+int @a, @b = 5;
 
 end_global
 
@@ -9,9 +9,16 @@ end_global
 begin_fct
 
 function @func1(string,int)
+	@b = 5;
 end_function
 
 function @func2()
+	for @a = 3 to @b do
+		@fds=43+@a;
+		for @x1 = @b to @a do
+			@func2(321,321);
+		end_for
+	end_for
 end_function
 
 end_fct
@@ -23,6 +30,7 @@ main
 @f = @x+23*2+@b/(@a*23);
 @x = @x+(23*5+@z*3);
 @func1();
+@a = @func();
 
 for @a = 3 to @b do
 	@fds=43+@a;
@@ -38,7 +46,7 @@ else
 end_if
 
 while ( $(@a) )
-	@x = 4*90;
+	;
 end_while
 
 do

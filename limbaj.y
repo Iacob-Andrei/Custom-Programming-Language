@@ -4,13 +4,14 @@ extern FILE* yyin;
 extern char* yytext;
 extern int yylineno;
 %}
-%token ID TIP NR CONST FCT EFCT IF ELSEIF ENDIF WHILE EWHILE FOR EFOR TO DO BGNGLO ENDGLO BGNFCT ENDFCT MAIN ENDMAIN OPLOGIC
+%token ID IDFUNC TIP NR CONST FCT EFCT IF ELSEIF ENDIF WHILE EWHILE FOR EFOR TO DO BGNGLO ENDGLO BGNFCT ENDFCT MAIN ENDMAIN OPLOGIC OPREL
 
 %left '-'
 %left '+'
 %left '/'
 %left '*'
 %left OPLOGIC
+%left OPREL
 
 %start progr
 %%
@@ -28,8 +29,6 @@ declaratii_globale :  declaratie ';'
           ;
 
 declaratie : TIP nume
-          | TIP ID '(' lista_param ')'
-          | TIP ID '(' ')'
           | CONST TIP cons
           ;
 
@@ -37,17 +36,11 @@ cons : cons ',' ID '=' NR
      | ID '=' NR 
      ;
      
-nume : ID
+nume : ID '=' NR
 	| nume ',' ID
+     | nume ',' ID '=' NR
+     | ID
 	;
-
-lista_param : param
-          | lista_param ','  param 
-          ;
-
-param : TIP ID
-     ; 
-
 
 // declaratii functii = bloc2
 
@@ -59,12 +52,15 @@ functii : functii declaratie_functie
           |declaratie_functie
           ;
 
-declaratie_functie : FCT ID '(' lista_tip_parametrii ')' EFCT
+declaratie_functie : FCT ID '(' lista_tip_parametrii ')' bloc_functie EFCT
 
 lista_tip_parametrii : lista_tip_parametrii ',' TIP 
                     | TIP    
                     |  /*epsilon*/
                     ;
+
+bloc_functie   : list 
+               ;
 
 /* main = bloc3 */
 bloc3 : MAIN list ENDMAIN  
@@ -73,33 +69,40 @@ bloc3 : MAIN list ENDMAIN
 /* lista instructiuni */
 list :  statement ';'
      | list statement ';'
-     | apel_functie
-     | list apel_functie
+     | apel_instr_control
+     | list apel_instr_control
      ;
 
 /* instructiune */
 statement: | ID '(' lista_apel ')' 
           | ID '=' expresie 
+          | ID '=' ID '(' lista_tip_parametrii ')'
           ;
      
-apel_functie: IF '(' conditie ')' list ENDIF
+apel_instr_control: IF '(' conditie ')' list ENDIF
+               | IF '(' conditie ')' ENDIF
                | IF '(' conditie ')' list ELSEIF list ENDIF
+               | IF '(' conditie ')' list ELSEIF ENDIF
                | WHILE '(' conditie ')' list EWHILE
+               | WHILE '(' conditie ')' EWHILE
                | DO list EWHILE '(' conditie ')'
+               | DO EWHILE '(' conditie ')'
                | FOR ID '=' NR TO ID DO list EFOR
+               | FOR ID '=' NR TO ID DO EFOR
                | FOR ID '=' NR TO ID NR list EFOR
+               | FOR ID '=' NR TO ID NR EFOR
                | FOR ID '=' ID TO ID DO list EFOR
+               | FOR ID '=' ID TO ID DO EFOR
                | FOR ID '=' ID TO ID NR list EFOR
+               | FOR ID '=' ID TO ID NR EFOR
                ;
 
 
-
 conditie  : '$' '(' expresie ')'
-          | conditie OPLOGIC conditie
+          | conditie OPREL conditie
           ;
 
-
-expresie : expresie '+' expresie
+expresie :  expresie '+' expresie
           | expresie '-' expresie
           | expresie '*' expresie
           | expresie '/' expresie
@@ -114,6 +117,7 @@ lista_apel : NR
           | lista_apel ',' ID
           | /*epsilon*/
           ;
+
 %%
 int yyerror(char * s){
 printf("eroare: %s la linia:%d\n",s,yylineno);

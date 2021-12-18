@@ -5,7 +5,8 @@
 %option noyywrap
 %%
 
-">"|"<"|"<="|">="|"!="|"=="          {return OPLOGIC;}
+">"|"<"|"<="|">="|"!="|"=="          {return OPREL;} 
+"&"|"||"|"!"                         {return OPLOGIC;}
 
 "int"|"float"|"char"|"string"|"bool" {return TIP;}
 "const"                              {return CONST;}
@@ -35,7 +36,9 @@
 "end_main"                           {return ENDMAIN;}
 
 
-@[_a-zA-Z][_a-zA-Z0-9]* {return ID;}
+@[_a-zA-Z][_a-zA-Z0-9]*              {return ID;}
+#[_a-zA-Z][_a-zA-Z0-9]*              {return IDFUNC;}
+
 [0-9]+ {return NR;}
 [ \t] ;
 \n {yylineno++;}
