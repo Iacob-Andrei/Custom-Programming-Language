@@ -4,7 +4,7 @@ extern FILE* yyin;
 extern char* yytext;
 extern int yylineno;
 %}
-%token ID IDFUNC TIP NR CONST FCT EFCT IF ELSEIF ENDIF WHILE EWHILE FOR EFOR TO DO BGNGLO ENDGLO BGNFCT ENDFCT MAIN ENDMAIN OPLOGIC OPREL
+%token ID IDFUNC IDCLASS TIP NR CONST FCT EFCT IF ELSEIF ENDIF WHILE EWHILE FOR EFOR TO DO BGNGLO ENDGLO BGNFCT ENDFCT MAIN ENDMAIN OPLOGIC OPREL
 
 %left '-'
 %left '+'
@@ -44,6 +44,8 @@ nume : ID '=' NR
 
 // declaratii functii = bloc2
 
+// declarari class
+
 bloc2 : BGNFCT functii ENDFCT
      | /*epsilon*/
      ;
@@ -52,7 +54,7 @@ functii : functii declaratie_functie
           |declaratie_functie
           ;
 
-declaratie_functie : FCT ID '(' lista_tip_parametrii ')' bloc_functie EFCT
+declaratie_functie : FCT IDFUNC '(' lista_tip_parametrii ')' bloc_functie EFCT
 
 lista_tip_parametrii : lista_tip_parametrii ',' TIP 
                     | TIP    
@@ -74,9 +76,9 @@ list :  statement ';'
      ;
 
 /* instructiune */
-statement: | ID '(' lista_apel ')' 
+statement: | IDFUNC '(' lista_apel ')' 
           | ID '=' expresie 
-          | ID '=' ID '(' lista_tip_parametrii ')'
+          | ID '=' IDFUNC '(' lista_tip_parametrii ')'
           ;
      
 apel_instr_control: IF '(' conditie ')' list ENDIF

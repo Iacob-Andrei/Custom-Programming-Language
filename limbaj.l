@@ -38,6 +38,7 @@
 
 @[_a-zA-Z][_a-zA-Z0-9]*              {return ID;}
 #[_a-zA-Z][_a-zA-Z0-9]*              {return IDFUNC;}
+%[_a-zA-Z][_a-zA-Z0-9]*              {return IDCLASS;}
 
 [0-9]+ {return NR;}
 [ \t] ;
