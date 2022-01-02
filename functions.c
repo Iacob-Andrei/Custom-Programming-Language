@@ -36,6 +36,7 @@ void print_error()
 {
     printf("Eroare: %s", error_msg);
 }
+
 char *trim(char *content)
 {
     while (isspace((unsigned char)*content))
@@ -49,6 +50,15 @@ char *trim(char *content)
         finish--;
     finish[1] = '\0';
     return content;
+}
+
+int check_if_type_exists(char *type)
+{
+    if(strcmp(trim(type), "int") == 0) return 1;
+    if(strcmp(trim(type), "float") == 0) return 1;
+    if(strcmp(trim(type), "string") == 0) return 1;
+    if(strcmp(trim(type), "vector") == 0) return 1;
+    return 0;
 }
 
 void print_variables()
@@ -109,9 +119,6 @@ void print_all()
 
 int declare_local();
 
-// returns 1 if theres no function of that sort
-// TO DO
-
 int check_id(char *nume)
 {
     for (int i = 0; i < var_counter; i++)
@@ -134,7 +141,7 @@ int check_function(char *nume_functie, char *type, char *lista_tipuri_argumente)
             {
                 sprintf(error_msg, "Functia %s deja exista. ", nume_functie);
                 print_error();
-                return -1;
+                return 1;
             }
         }
     }
@@ -160,6 +167,7 @@ int check_constant(char *nume)
     }
     return 0; // nu are tipul constant
 }
+
 // returns 1 if there was possible to assign an expression
 int assign_expression(char *name, char *value)
 {
@@ -186,7 +194,7 @@ int assign_expression(char *name, char *value)
     return 0;
 }
 
-// returns the type of the variable if it exists, in other case -1
+// returns the type of the variable if it exists, in other case 9999999
 int get_id_value(char *nume)
 {
     for (int i = 0; i < var_counter; i++)
@@ -194,7 +202,7 @@ int get_id_value(char *nume)
         if (strcmp(table_of_variables[i].name, nume) == 0)
             return table_of_variables[i].val;
     }
-    return -1;
+    return 9999999;
 }
 
 char *get_id_type(char *nume)
@@ -222,7 +230,7 @@ int declarare_global_integers(char *type_var, char *id, int check_const, int act
         print_error();
         return -1;
     }
-    // TO DO
+
     if ((actual_value == 9999999))
     {
         sprintf(error_msg, "Constanta %s a fost declarata fara valoare", id);
@@ -239,7 +247,7 @@ int declarare_global_integers(char *type_var, char *id, int check_const, int act
 
     if (strcmp(trim(type_var), "int") == 0)
     {
-        strcpy(table_of_variables[var_counter].type, trim(type_var)); // 0 means int
+        strcpy(table_of_variables[var_counter].type, trim(type_var)); 
     }
     else
     {
@@ -260,10 +268,23 @@ int declarare_global_integers(char *type_var, char *id, int check_const, int act
     return 0;
 }
 
-void declarare_functie(char *name, char *return_type, char *lista_tipurilor)
+int declarare_functie(char *name, char *return_type, char *lista_tipurilor)
 {
-    check_function(name, return_type, lista_tipurilor); // error -> if exists -> perror
+    if(check_function(name, return_type, lista_tipurilor))
+    {
+        sprintf(error_msg, "Functia %s deja exista.", name);
+        print_error();
+        return -1;
+    }
     strcpy(table_of_functons[func_counter].func_name, name);
+    if(!check_if_type_exists(return_type))
+    {
+        sprintf(error_msg, "Inexistent type for the return value of the function %s",  name);
+        print_error();
+        return -1;
+    }
+    strcpy(table_of_functons[func_counter].func_return_type, return_type);
+    strcpy(table_of_functons[func_counter].list_of_types, lista_tipurilor);
     func_counter++;
 }
 
