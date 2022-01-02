@@ -374,8 +374,8 @@ declaratie
      | TIP ID '=' expresie ';'           { declarare_global_integers( $1, $2 , 0 , $4 ); }
      | CONST TIP ID '=' expresie ';'     { declarare_global_integers( $2, $3 , 1 , $5 ); }
      | CONST TIP ID ';'                  { if( declarare_global_integers( $2, $3 , 1 , 9999999 ) == -1 ) exit(0); }
-     | CHAR ID ';'                       //{ declarare_char( $2 , "empty"); }
-     | CHAR ID '=' STRING ';'            //{ declarare_char( $2 , $4); }            char* ID, char* value_string
+     | CHAR ID ';'                       //{ declarare_char( $2 , "empty", 0); }
+     | CHAR ID '=' STRING ';'            //{ declarare_char( $2 , $4, 0); }            char* ID, char* value_string, int scope
      ;
 
 
@@ -444,8 +444,8 @@ declarari_main
      | TIP ID '=' expresie ';'          { declarare_main($1 , $2 , 0 , $4); }
      | CONST TIP ID '=' expresie ';'    { declarare_main($2 , $3 , 1 , $5); } 
      | CONST TIP ID ';'                 { if( declarare_main($2 , $3 , 1 , 9999999) == -1 ) exit(0);}     //caz eroare
-     | CHAR ID ';'                      //{ declarare_char( $2 , "empty"); }
-     | CHAR ID '=' STRING ';'           //{ declarare_char( $2 , $4); }            char* ID, char* value_string
+     | CHAR ID ';'                      //{ declarare_char( $2 , "empty", 1); }
+     | CHAR ID '=' STRING ';'           //{ declarare_char( $2 , $4, 1); }            char* ID, char* value_string, int scope
      ;
 
 
