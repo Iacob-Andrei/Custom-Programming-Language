@@ -179,7 +179,6 @@ int declarare_main(char *type_var, char *id, int check_const, int actual_value)
      return 0;
 }
 
-
 int check_if_type_exists(char *type)
 {
      if(strcmp(trim(type), "int") == 0) return 1;
@@ -207,6 +206,23 @@ int check_function(char *nume_functie, char *type, char *lista_tipuri_argumente)
      return 0;
 }
 
+int check_run_function(char *nume_functie, char *lista_tipuri_argumente)
+{
+     for (int i = 0; i < func_counter; i++)
+     {
+          if (strcmp(table_of_functons[i].func_name, nume_functie) == 0)
+          {
+               if ((strcmp(table_of_functons[i].list_of_types, lista_tipuri_argumente) == 0))
+               {
+                    return 0;
+               }
+          }
+     }
+     sprintf(error_msg, "Functia nu %s exista. ", nume_functie);
+     print_error();
+     return 1;
+}
+
 int declarare_functie(char *name, char *return_type, char *lista_tipurilor)
 {
      if(check_function(name, return_type, lista_tipurilor))
@@ -219,6 +235,96 @@ int declarare_functie(char *name, char *return_type, char *lista_tipurilor)
      strcpy(table_of_functons[func_counter].func_return_type, return_type);
      strcpy(table_of_functons[func_counter].list_of_types, lista_tipurilor);
      func_counter++;
+}
+
+int get_id_value(char *nume)
+{
+     for (int i = 0; i < var_counter; i++)
+     {
+          if (strcmp(table_of_variables[i].name, nume) == 0)
+               return table_of_variables[i].val;
+     }
+     return 9999999;
+}
+
+char *get_id_type(char *nume)
+{
+     for (int i = 0; i < var_counter; i++)
+     {
+          if (strcmp(table_of_variables[i].name, nume) == 0)
+               return table_of_variables[i].type;
+     }
+     return (char *)"no type";
+}
+
+int assign_expression(char *name, int value)
+{
+    // check if constant
+     if (check_constant(name))
+     {
+          sprintf(error_msg, "Impossible to assign a value to a constant variable: %s", name);
+          print_error();
+          return -1;
+     }
+
+     for (int i = 0; i < var_counter; i++)
+     {
+          if (strcmp(table_of_variables[i].name, name) == 0)
+          {
+               if (table_of_variables[i].if_const != 1)
+               {
+                    sprintf(table_of_variables[i].str_val , "%d", value);
+                    table_of_variables[i].val = value;
+                    return 1;
+               }
+               return 0;
+          }
+     }
+     return 0;
+}
+
+char* return_type_function( char *nume_functie, char *lista_tipuri_argumente )
+{
+     for (int i = 0; i < func_counter; i++)
+     {
+          if (strcmp(table_of_functons[i].func_name, nume_functie) == 0)
+          {
+               if ((strcmp(table_of_functons[i].list_of_types, lista_tipuri_argumente) == 0))
+               {
+                    return table_of_functons[i].func_return_type;
+               }
+          }
+     }
+     sprintf(error_msg, "Functia nu %s exista. ", nume_functie);
+     print_error();
+     return "eroare";
+}
+
+int check_if_type_concide( char *var_name , char *func_name, char *lista_tip_parametrii  )
+{
+     if( check_constant(var_name) == 1 )
+     {
+          sprintf(error_msg, "Variabila %s este constanta. \n", var_name);
+          print_error();
+          return 0;
+     } 
+
+     if( check_run_function(func_name,lista_tip_parametrii) == 1 )
+     {
+          sprintf(error_msg, "Functia %s este inexistenta. \n", var_name);
+          print_error();
+          return 0;
+     }
+     
+     if( strcmp( get_id_type(var_name) , return_type_function(func_name , lista_tip_parametrii) ) != 0 )
+     {
+          sprintf(error_msg, "Tipuri diferite!. \n");
+          print_error();
+          return 0;
+     }
+
+     printf("ok\n");
+     return 1;
 }
 
 %}
@@ -345,10 +451,11 @@ declarari_main
 
 /* instructiune */
 statement
-     : ID '(' lista_apel ')' ';'                      //{ check_function( $1, $3 ); }
-     | ID '(' ')' ';'                                 //{ check_function( $1, "null" ); }
-     | ID '=' expresie ';'                            //{ if(!check_constant($1)) assign_expression( $1 , $3); }
-     | ID '=' ID  lista_apel ';'                      //{ check_constant($1); check_function($3,$4);}
+     : ID '(' lista_apel ')' ';'                      { if( check_run_function( $1, $3 ) == 1 ) exit(0); }
+     | ID '(' ')' ';'                                 { if( check_run_function( $1, "null" ) == 1 ) exit(0); }
+     | ID '=' expresie ';'                            { assign_expression( $1 , $3); }
+     | ID '=' ID '(' lista_apel ')' ';'               { if( check_if_type_concide( $1 , $3 , $5 ) == 0 ) exit(0); }
+     | ID '=' ID '(' ')' ';'                          { if( check_if_type_concide( $1 , $3 , "null" ) == 0 ) exit(0); }
      ;
      
 apel_instr_control
@@ -356,10 +463,10 @@ apel_instr_control
      | IF '(' conditie ')' list ELSEIF list ENDIF
      | WHILE '(' conditie ')' list EWHILE
      | DO list EWHILE '(' conditie ')'
-     | FOR ID '=' NR TO ID DO list EFOR                        //{check_id($2); check_id($6);}
-     | FOR ID '=' NR TO NR DO list EFOR                        //{check_id($2);}
-     | FOR ID '=' ID TO ID DO list EFOR                        //{check_id($2); check_id($4); check_id($6);}
-     | FOR ID '=' ID TO NR DO list EFOR                        //{check_id($2); check_id($4);}
+     | FOR ID '=' NR TO ID DO list EFOR                        { if(check_id($2) == 0 ) exit(0);  if(check_id($6) == 0 ) exit(0);}
+     | FOR ID '=' NR TO NR DO list EFOR                        { if(check_id($2) == 0 ) exit(0); }
+     | FOR ID '=' ID TO ID DO list EFOR                        {check_id($2); check_id($4); check_id($6);}
+     | FOR ID '=' ID TO NR DO list EFOR                        {check_id($2); check_id($4);}
      ;
 
 
@@ -367,31 +474,28 @@ conditie  : '(' expresie ')'
           | conditie OPREL conditie
           ;
 
-expresie :  expresie '+' expresie       //{ $$ = $1 + $3; }
-          | expresie '-' expresie       //{ $$ = $1 - $3; }
-          | expresie '*' expresie       //{ $$ = $1 * $3; }
-          | expresie '/' expresie       //{ if($3 == 0) printf("eroare.."); else $$ = $1 / $3;}
+expresie :  expresie '+' expresie       { $$ = $1 + $3; }
+          | expresie '-' expresie       { $$ = $1 - $3; }
+          | expresie '*' expresie       { $$ = $1 * $3; }
+          | expresie '/' expresie       { if($3 == 0) printf("eroare.."); else $$ = $1 / $3;}
           | '(' expresie ')'            { $$ = $2; }
-          | ID                          { $$ = 5; } //get_id_value($1);    // check if integer, daca e altceva trimite eroare
+          | ID                          { $$ = get_id_value($1); }    // check if integer, daca e altceva trimite eroare
           | NR                          { $$ = $1;}
-          | ID '(' ')'                  { $$ = 0; } //check function
-          | ID '(' lista_apel ')'       { $$ = 0; } //check function
           ;
 
 lista_apel
      : NR                               { strcpy($$,"int");  }
      | lista_apel ',' NR                { strcat($$,",int"); }
-     | ID                               //{ strcpy($$, get_id_type($1)); }
-     | lista_apel ',' ID                //{ strcat($$,","); strcat($$, get_id_type($1)); }
+     | ID                               { strcpy($$, get_id_type($1)); }
+     | lista_apel ',' ID                { strcat($$,","); strcat($$, get_id_type($1)); }
      ;
 
 %%
 int yyerror(char * s)
 {
-     printf("eroare: %s la linia:%d\n",s,yylineno);
+     printf("eroare: %s la linia:%d\n\n",s,yylineno);
      exit(0);
 }
-
 
 void print_variables()
 {
