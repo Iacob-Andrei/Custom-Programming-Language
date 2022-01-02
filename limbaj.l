@@ -8,8 +8,9 @@
 ">"|"<"|"<="|">="|"!="|"=="          {return OPREL;} 
 "&"|"||"|"!"                         {return OPLOGIC;}
 
-"int"|"float"|"char"|"bool"          {yylval.str = strdup(yytext); return TIP;}
+"int"|"float"|"char"                 {yylval.str = strdup(yytext); return TIP;}
 "const"                              {return CONST;}
+"array"                              {return ARRAY;}
 
 "function"                           {return FCT;}
 "end_function"                       {return EFCT;}
@@ -37,6 +38,7 @@
 
 "def class"                          {return CLASS;}
 "end_defclass"                       {return ENDCLASS;}
+
 [_a-zA-Z][_a-zA-Z0-9]*               {return ID;}
 
 [-]?[0-9]+                           {yylval.intnr = atoi(yytext); return NR;}
