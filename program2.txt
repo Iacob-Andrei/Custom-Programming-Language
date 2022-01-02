@@ -1,0 +1,42 @@
+begin_global
+
+int b = 10;
+int ac;
+const int h = 32;
+
+end_global
+
+
+
+begin_fct
+
+function int func1 (int)
+	 b = 5;
+end_function
+
+function int func2 ()
+	 b = 5;
+end_function
+
+end_fct
+
+
+
+main 
+
+float variabila_main;
+float variabila2 = 5234.42;
+const int var3 = 32;
+
+func1( b );
+
+func2();
+
+b = 23;
+
+for a = 3 to 65 do
+	b = 24;
+end_for
+
+
+end_main
