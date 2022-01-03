@@ -117,43 +117,6 @@ int assign_value_if_null()
      return 0;
 }
 
-int declarare_vector(char *tip, char *nume, int dimensiune_maxima, int scope)
-{
-    if (check_id(nume))
-    {
-        sprintf(error_msg, "O variabila cu acelasi nume %s a fost deja declarta anterior.", nume);
-        print_error();
-        return -1;
-    }
-    strcpy(table_of_variables[var_counter].name, trim(nume));
-
-    table_of_variables[var_counter].has_elements = 0;
-    table_of_variables[var_counter].array_size = dimensiune_maxima;
-
-    if (strcmp(trim(tip), "int") == 0)
-    {
-        table_of_variables[var_counter].array = malloc(dimensiune_maxima * sizeof(int));
-        for (int i = 0; i < dimensiune_maxima; i++)
-            table_of_variables[i].array[i] = 0;
-    }
-    else if (strcmp(trim(tip), "float") == 0)
-    {
-        sprintf(error_msg, "Imposibila crearea unui vector de %s, folositi int", tip);
-        print_error();
-        return -1;
-    }
-    else if (strcmp(trim(tip), "char") == 0)
-    {
-        sprintf(error_msg, "Imposibila crearea unui vector de %s, folositi int", tip);
-        print_error();
-        return -1;
-    }
-    strcpy(table_of_variables[var_counter].type, "int");
-
-    table_of_variables[var_counter].scope = scope;
-    table_of_variables[var_counter].if_const = 0;
-}
-
 int declarare_char(char *id, char *contents, int scope)
 {
      if (check_id(id))
@@ -415,6 +378,49 @@ int check_if_type_concide( char *var_name , char *func_name, char *lista_tip_par
      return 1;
 }
 
+int declarare_vector(char *tip, char *nume, int dimensiune_maxima, int scope)
+{
+
+     if (check_id(nume))
+     {
+          sprintf(error_msg, "O variabila cu acelasi nume %s a fost deja declarta anterior.", nume);
+          print_error();
+          exit(0);
+     }
+
+     strcpy(table_of_variables[var_counter].name, trim(nume));
+
+     table_of_variables[var_counter].has_elements = 0;
+     table_of_variables[var_counter].array_size = dimensiune_maxima;
+
+     if (strcmp(trim(tip), "int") == 0)
+     {
+          table_of_variables[var_counter].array = (int*)malloc(dimensiune_maxima * sizeof(int));
+          for (int j = 0; j < dimensiune_maxima; j++)
+          {
+               table_of_variables[var_counter].array[j] = 0;
+          }
+          
+     }
+     else if (strcmp(trim(tip), "float") == 0)
+     {
+          sprintf(error_msg, "Imposibila crearea unui vector de %s, folositi int", tip);
+          print_error();
+          exit(0);
+     }
+     else if (strcmp(trim(tip), "char") == 0)
+     {
+          sprintf(error_msg, "Imposibila crearea unui vector de %s, folositi int", tip);
+          print_error();
+          exit(0);
+     }
+     strcpy(table_of_variables[var_counter].type, "int");
+
+     table_of_variables[var_counter].scope = scope;
+     table_of_variables[var_counter].if_const = 0;
+     var_counter++;
+}
+
 struct AST* buildAST( char* nume , struct AST* left , struct AST* right, enum nodetype type )
 {
      struct AST* newnode = (struct AST*)malloc(sizeof(struct AST));
@@ -631,7 +637,7 @@ declarari_main
      | CONST TIP ID ';'                 { if( declarare_main($2 , $3 , 1 , 9999999) == -1 ) exit(0);}     
      | CHAR ID ';'                      { if( declarare_char( $2 , "empty", 1) == -1 ) exit(0); }
      | CHAR ID '=' STRING ';'           { if( declarare_char( $2 , $4, 1 ) == -1 ) exit(0); }         
-     | ARRAY TIP ID '[' NR ']' ';'      //{ declarare_vector( $2 , $3 , $5 , 1 ); }     char* tip , char* nume, int dimensiune_maxima, int scope
+     | ARRAY TIP ID '[' NR ']' ';'      { declarare_vector( $2 , $3 , $5 , 1 ); }    
      ;
 
 
@@ -651,18 +657,10 @@ statement
                                                        }
      | ID '=' ID '(' lista_apel ')' ';'               { if( check_if_type_concide( $1 , $3 , $5 ) == 0 ) exit(0); }
      | ID '=' ID '(' ')' ';'                          { if( check_if_type_concide( $1 , $3 , "null" ) == 0 ) exit(0); }
-     | ID '[' NR ']' '=' expresie ';'                 //{ char temp[100]; bzero(temp, 100); strcpy(temp,$1);
-                                                       //if( strcmp("char",get_id_type(temp)) == 0 ) 
-                                                       //{  
-                                                       //     sprintf(error_msg, "NU se pot face asignari la variabile de tip char, linia %d.", yylineno);
-                                                       //     print_error();
-                                                       //     exit(0);
-                                                       //}
-                                                       //int rez = evalAST( $6 );
-                                                       //if( assign_expression_to_array_el( $1 , $3 , rez )  != 1 ) exit(0); 
-                                                       //}
-     | ID '[' NR ']' '=' ID '(' lista_apel ')' ';'    //{ if( check_if_type_concide( $1 , $6 , $8 ) == 0 ) exit(0); }
-     | ID '[' NR ']' '=' ID '(' ')' ';'               //{ if( check_if_type_concide( $1 , $6 , "null" ) == 0 ) exit(0); }
+     | ID '[' NR ']' '=' expresie ';'                 //{ int rez = evalAST( $6 );
+                                                       //if( assign_expression_to_array_el( $1 , $3 , rez )  != 1 ) exit(0); }
+     | ID '[' NR ']' '=' ID '(' lista_apel ')' ';'    { if( check_if_type_concide( $1 , $6 , $8 ) == 0 ) exit(0); }
+     | ID '[' NR ']' '=' ID '(' ')' ';'               { if( check_if_type_concide( $1 , $6 , "null" ) == 0 ) exit(0); }
      ;
      
 apel_instr_control
@@ -693,7 +691,13 @@ expresie :  expresie '+' expresie       { $$ = buildAST( "+" , $1 , $3 , OP ); }
                                              sprintf( nume , "%d" , $1 );
                                              $$ = buildAST( nume , NULL , NULL , NUMAR ); 
                                         }
-          | ID '[' NR ']'               // { cer valoarea ID[NR]  }
+          | ID '[' NR ']'               //{ 
+                                        //      int value = get_array_value($1,$3); 
+                                        //      char nume[100];
+                                        //      bzero(nume, 100);
+                                        //      sprintf( nume , "%d" , value );
+                                        //      $$ = buildAST( nume , NULL , NULL , NUMAR );
+                                        // }
           ;
 
 lista_apel
@@ -726,6 +730,7 @@ void print_variables()
      {
           char buffer[FILE_MEMORY];
           bzero(buffer, FILE_MEMORY);
+
           sprintf(buffer, "name: %s, type: %s, const: %d, val: %s, scope: %d\n",
                     table_of_variables[i].name, table_of_variables[i].type,
                     table_of_variables[i].if_const, table_of_variables[i].str_val, table_of_variables[i].scope);
