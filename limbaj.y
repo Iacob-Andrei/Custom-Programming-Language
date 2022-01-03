@@ -96,6 +96,45 @@ int assign_value_if_null()
      return 0;
 }
 
+int delcarare_char(char *id, char *contents, int scope)
+{
+    if (check_id(id))
+    {
+        sprintf(error_msg, "Variabila %s a fost deja declarta anterior.", id);
+        print_error();
+        return -1;
+    }
+    strcpy(table_of_variables[var_counter].name, trim(id));
+
+    // declare scope
+    table_of_variables[var_counter].scope = 1; // main
+
+    // if const
+    // TO DO? CHAR poate fi constanta?
+    table_of_variables[var_counter].if_const = 0;
+
+    if ((table_of_variables[var_counter].if_const == 1) && (strcmp(trim(contents), "empty") == 0))
+    {
+        sprintf(error_msg, "Constanta %s a fost declarata fara valoare\n", id);
+        print_error();
+        return -1;
+    }
+
+    strcpy(table_of_variables[var_counter].type, "char");
+
+    // asssigning value
+    table_of_variables[var_counter].val = 1; // value for the string was defined. it exists
+
+    sprintf(table_of_variables[var_counter].str_val, "%s", contents);
+
+    if (strcmp(trim(contents), "empty") == 0)
+    {
+        table_of_variables[var_counter].val = 0; // the string wasn't actually defined
+    }
+    var_counter++;
+    return 0;
+}
+
 int declarare_global_integers(char *type_var, char *id, int check_const, int actual_value)
 {
      if (check_id(id))
@@ -176,15 +215,6 @@ int declarare_main(char *type_var, char *id, int check_const, int actual_value)
           assign_value_if_null();
      }
      var_counter++;
-     return 0;
-}
-
-int check_if_type_exists(char *type)
-{
-     if(strcmp(trim(type), "int") == 0) return 1;
-     if(strcmp(trim(type), "float") == 0) return 1;
-     if(strcmp(trim(type), "string") == 0) return 1;
-     if(strcmp(trim(type), "vector") == 0) return 1;
      return 0;
 }
 
@@ -499,35 +529,38 @@ int yyerror(char * s)
 
 void print_variables()
 {
+     FILE *fPtr;
+     fPtr = fopen("symbol_table_functions.txt", "w");
+     if (fPtr == NULL)
+     {
+          printf("Unable to create file.\n");
+          exit(EXIT_FAILURE);
+     }
      printf("Variabilele declarate:\n");
 
      for (int i = 0; i < var_counter; i++)
      {
-          
           char buffer[FILE_MEMORY];
           bzero(buffer, FILE_MEMORY);
           sprintf(buffer, "name: %s, type: %s, const: %d, val: %s, scope: %d\n",
                     table_of_variables[i].name, table_of_variables[i].type,
                     table_of_variables[i].if_const, table_of_variables[i].str_val, table_of_variables[i].scope);
           printf("%s",buffer);
+          fputs(buffer, fPtr);
      }
-     
-
-     /*   TO DO
-     FILE *f = fopen("symbol_table.txt", "w");
-     if (f != NULL)
-     {
-          fprintf(f, "%s", temp);
-          fclose(f);
-          f = NULL;
-     }
-     */
-
+     fclose(fPtr);
      printf("\n\n");
 }
 
 void print_functions()
 {
+     FILE *fPtr;
+     fPtr = fopen("symbol_table.txt", "w");
+     if (fPtr == NULL)
+     {
+          printf("Unable to create file.\n");
+          exit(EXIT_FAILURE);
+     }
      printf("Functiile declarate sunt:\n");
 
      for (int i = 0; i < func_counter; i++)
@@ -540,18 +573,9 @@ void print_functions()
                     table_of_functons[i].list_of_types);
 
           printf("%s", buffer);
+          fputs(buffer, fPtr);
      }
-     
-     /*
-     FILE *f = fopen("symbol_table_functions.txt", "w");
-     if (f != NULL)
-     {
-          fprintf(f, "%s", temp);
-          fclose(f);
-          f = NULL;
-     }
-     */
-
+     fclose(fPtr);
      printf("\n\n");
 }
 
@@ -565,6 +589,5 @@ int main(int argc, char** argv)
 {
      yyin=fopen(argv[1],"r");
      yyparse();
-
      print_all();
 } 
