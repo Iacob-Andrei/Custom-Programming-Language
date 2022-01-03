@@ -41,7 +41,7 @@ char error_msg[ERROR_BUFFER];
 
 void print_error()
 {
-     printf("Eroare: %s", error_msg);
+     printf("Eroare: %s\n", error_msg);
 }
 
 char *trim(char *content)
@@ -486,7 +486,15 @@ declarari_main
 statement
      : ID '(' lista_apel ')' ';'                      { if( check_run_function( $1, $3 ) == 1 ) exit(0); }
      | ID '(' ')' ';'                                 { if( check_run_function( $1, "null" ) == 1 ) exit(0); }
-     | ID '=' expresie ';'                            { if( assign_expression( $1 , $3)  != 1 ) exit(0); }
+     | ID '=' expresie ';'                            { char temp[100]; bzero(temp, 100); strcpy(temp,$1);
+                                                       if( strcmp("char",get_id_type(temp)) == 0 ) 
+                                                       {  
+                                                            sprintf(error_msg, "NU se pot face asignari la variabile de tip char, linia %d.", yylineno);
+                                                            print_error();
+                                                            exit(0);
+                                                       }
+                                                       if( assign_expression( $1 , $3)  != 1 ) exit(0); \
+                                                       }
      | ID '=' ID '(' lista_apel ')' ';'               { if( check_if_type_concide( $1 , $3 , $5 ) == 0 ) exit(0); }
      | ID '=' ID '(' ')' ';'                          { if( check_if_type_concide( $1 , $3 , "null" ) == 0 ) exit(0); }
      ;
@@ -512,7 +520,7 @@ expresie :  expresie '+' expresie       { $$ = $1 + $3; }
           | expresie '*' expresie       { $$ = $1 * $3; }
           | expresie '/' expresie       { if($3 == 0) {printf("EROARE impartire la 0 la linia %d!!\n",yylineno); exit(0); } else $$ = $1 / $3;}
           | '(' expresie ')'            { $$ = $2; }
-          | ID                          { $$ = get_id_value($1); if( $$ == 9999999 ) { printf("EROARE identificator %s inexistent\n", $1); exit(0); }}    // check if integer, daca e altceva trimite eroare
+          | ID                          { if( strstr( "int float" , get_id_type($1) ) == NULL ) { printf("S-a incercat o asignare de tip string la int!\n"); exit(0); }  $$ = get_id_value($1); if( $$ == 9999999 ) { printf("EROARE identificator %s inexistent\n", $1); exit(0); }}
           | NR                          { $$ = $1;}
           ;
 
