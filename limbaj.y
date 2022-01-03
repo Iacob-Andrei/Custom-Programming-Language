@@ -404,7 +404,7 @@ int evalAST( struct AST* tree )
 
                if( strcmp( tip , "char" ) == 0 )
                {
-                    sprintf(error_msg, "Variabila %s este de tip char. NU poate fi folosita intr-o expresie!", tree->name);
+                    sprintf(error_msg, "Variabila %s este de tip char. NU poate fi folosita intr-o expresie la linia %d!", tree->name, yylineno);
                     print_error();
                     exit(0);
                }
@@ -511,7 +511,7 @@ declaratie
      | CONST TIP ID ';'                  { if( declarare_global_integers( $2, $3 , 1 , 9999999 ) == -1 ) exit(0); }
      | CHAR ID ';'                       { if( declarare_char( $2 , "empty", 0) == -1 ) exit(0); }
      | CHAR ID '=' STRING ';'            { if( declarare_char( $2 , $4, 0) == -1 ) exit(0); }        
-     | ARRAY TIP ID '[' NR ']' ';'       //{ declarare_vector( $2 , $3 , $5 ); }     char* tip , char* nume, int dimensiune_maxima
+     | ARRAY TIP ID '[' NR ']' ';'       //{ declarare_vector( $2 , $3 , $5 , 0 ); }     char* tip , char* nume, int dimensiune_maxima, int scope
      ;
 
 
@@ -551,7 +551,7 @@ declaratie_metoda   : FCT TIP ID lista_tip_parametrii EFCT
                     | FCT CHAR ID lista_tip_parametrii EFCT
                     ;
 
-declaratie_functie : FCT TIP ID lista_tip_parametrii EFCT      { if( declarare_functie( $3, $2, $4) == -1 ) exit(0); }  
+declaratie_functie : FCT TIP ID lista_tip_parametrii EFCT        { if( declarare_functie( $3, $2, $4) == -1 ) exit(0); }  
                     | FCT CHAR ID lista_tip_parametrii EFCT      { if( declarare_functie( $3, $2, $4) == -1 ) exit(0); }
                     ;
 
@@ -584,7 +584,7 @@ list : statement
      ;
 
 print_function
-     : PRINT '(' STRING ',' expresie ')' ';'      { printf("%s%d\n", $3 , $5 ); }
+     : PRINT '(' STRING ',' expresie ')' ';'      { printf("%s%d\n", $3 , evalAST($5) ); }
      ;
 
 declarari_main
@@ -594,7 +594,7 @@ declarari_main
      | CONST TIP ID ';'                 { if( declarare_main($2 , $3 , 1 , 9999999) == -1 ) exit(0);}     
      | CHAR ID ';'                      { if( declarare_char( $2 , "empty", 1) == -1 ) exit(0); }
      | CHAR ID '=' STRING ';'           { if( declarare_char( $2 , $4, 1 ) == -1 ) exit(0); }         
-     | ARRAY TIP ID '[' NR ']' ';'      //{ declarare_vector( $2 , $3 , $5 ); }     char* tip , char* nume, int dimensiune_maxima
+     | ARRAY TIP ID '[' NR ']' ';'      //{ declarare_vector( $2 , $3 , $5 , 1 ); }     char* tip , char* nume, int dimensiune_maxima, int scope
      ;
 
 
