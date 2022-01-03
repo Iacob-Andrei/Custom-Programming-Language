@@ -173,10 +173,6 @@ int declarare_global_integers(char *type_var, char *id, int check_const, int act
      table_of_variables[var_counter].val = actual_value;
      sprintf(table_of_variables[var_counter].str_val, "%d", actual_value);
 
-     if (actual_value == 0) // ??
-     {
-          assign_value_if_null();
-     }
      var_counter++;
      return 0;
 }
@@ -210,7 +206,7 @@ int declarare_main(char *type_var, char *id, int check_const, int actual_value)
      table_of_variables[var_counter].val = actual_value;
      sprintf(table_of_variables[var_counter].str_val, "%d", actual_value);
 
-     if (actual_value == -9999999) // ??
+     if (actual_value == -9999999)
      {
           assign_value_if_null();
      }
@@ -275,7 +271,8 @@ int get_id_value(char *nume)
      for (int i = 0; i < var_counter; i++)
      {
           if (strcmp(table_of_variables[i].name, nume) == 0)
-               return table_of_variables[i].val;
+               if( strcmp( table_of_variables[i].str_val , "NULL") != 0 )
+                    return table_of_variables[i].val;
      }
      return 9999999;
 }
@@ -427,15 +424,29 @@ declarari_bloc_2
      | declaratie_functie
      ;
 
-declarare_class : CLASS ID  bloc_class ENDCLASS
+declarare_class : CLASS ID bloc_class ENDCLASS
 
-bloc_class     : bloc_class declaratie_functie
-               | bloc_class declaratie
-               | declaratie_functie
-               | declaratie 
+bloc_class     : bloc_class declaratie_metoda
+               | declaratie_metoda
+               | bloc_class declaratie_class
+               | declaratie_class
                ;
 
-declaratie_functie : FCT TIP ID lista_tip_parametrii bloc_functie EFCT      { if( declarare_functie( $3, $2, $4) == -1 ) exit(0); }  
+declaratie_class
+     : TIP ID ';'
+     | TIP ID '=' expresie ';'
+     | CONST TIP ID '=' expresie ';'
+     | CHAR ID ';'
+     | CHAR ID '=' STRING ';'
+     ;
+
+declaratie_metoda   : FCT TIP ID lista_tip_parametrii EFCT 
+                    | FCT CHAR ID lista_tip_parametrii EFCT
+                    ;
+
+declaratie_functie : FCT TIP ID lista_tip_parametrii EFCT      { if( declarare_functie( $3, $2, $4) == -1 ) exit(0); }  
+                    | FCT CHAR ID lista_tip_parametrii EFCT      { if( declarare_functie( $3, $2, $4) == -1 ) exit(0); }
+                    ;
 
 lista_tip_parametrii
      : '('  ')'                     { $$ = malloc(5); strcpy( $$ , "null"); }
@@ -448,9 +459,6 @@ parametrii
      | CHAR                         { $$ = $1; }
      | parametrii ',' CHAR          { $$ = $1; strcat( $$ , "," ); strcat( $$ , $3 ); }
      ;
-
-bloc_functie   : list 
-               ;
 
 /* main = bloc3 */
 bloc3 : MAIN list ENDMAIN  
@@ -520,7 +528,7 @@ expresie :  expresie '+' expresie       { $$ = $1 + $3; }
           | expresie '*' expresie       { $$ = $1 * $3; }
           | expresie '/' expresie       { if($3 == 0) {printf("EROARE impartire la 0 la linia %d!!\n",yylineno); exit(0); } else $$ = $1 / $3;}
           | '(' expresie ')'            { $$ = $2; }
-          | ID                          { if( strstr( "int float" , get_id_type($1) ) == NULL ) { printf("S-a incercat o asignare de tip string la int!\n"); exit(0); }  $$ = get_id_value($1); if( $$ == 9999999 ) { printf("EROARE identificator %s inexistent\n", $1); exit(0); }}
+          | ID                          { if( strstr( "int float" , get_id_type($1) ) == NULL ) { printf("S-a incercat o asignare de tip string la int!\n"); exit(0); }  $$ = get_id_value($1); if( $$ == 9999999 ) { printf("EROARE identificator %s inexistent sau fara valoare\n", $1); exit(0); }}
           | NR                          { $$ = $1;}
           ;
 
