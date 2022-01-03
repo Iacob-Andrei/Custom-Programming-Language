@@ -3,20 +3,30 @@ begin_global
 int b = 10;
 int ac;
 const int h = 32;
+char string1 = "ananas";
 
 end_global
-
 
 
 begin_fct
 
 function int func1 (int)
-	 b = 5;
 end_function
 
 function int func2 ()
-	 b = 5;
 end_function
+
+
+def_class clasa1 
+
+	function int metoda2 ()
+	end_function
+
+	int b;
+	int b2 = 244;
+	char nume_cl = "marius";
+
+end_defclass
 
 end_fct
 
@@ -28,15 +38,9 @@ float variabila_main;
 float variabila2 = 5234.42;
 const int var3 = 32;
 
-func1( b );
+char string2 = "banana";
+
 
 func2();
-
-b = 23;
-
-for a = 3 to 65 do
-	b = 24;
-end_for
-
 
 end_main
