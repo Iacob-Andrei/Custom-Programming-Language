@@ -117,7 +117,7 @@ int assign_value_if_null()
      return 0;
 }
 
-int declarare_vector(char *tip, char *nume, int dimensiune_maxima)
+int declarare_vector(char *tip, char *nume, int dimensiune_maxima, int scope)
 {
     if (check_id(nume))
     {
@@ -137,10 +137,9 @@ int declarare_vector(char *tip, char *nume, int dimensiune_maxima)
     for (int i = 0; i < dimensiune_maxima; i++)
         table_of_variables[i].array[i] = 0;
 
-    table_of_variables[var_counter].scope = 0;
+    table_of_variables[var_counter].scope = scope;
     table_of_variables[var_counter].if_const = 0;
 }
-
 int declarare_char(char *id, char *contents, int scope)
 {
      if (check_id(id))
