@@ -129,17 +129,31 @@ int declarare_vector(char *tip, char *nume, int dimensiune_maxima, int scope)
 
     table_of_variables[var_counter].has_elements = 0;
     table_of_variables[var_counter].array_size = dimensiune_maxima;
-    strcpy(table_of_variables[var_counter].type, trim(tip));
 
-    // allocate space depending on type
-
-    table_of_variables[var_counter].array = malloc(dimensiune_maxima * sizeof(int));
-    for (int i = 0; i < dimensiune_maxima; i++)
-        table_of_variables[i].array[i] = 0;
+    if (strcmp(trim(tip), "int") == 0)
+    {
+        table_of_variables[var_counter].array = malloc(dimensiune_maxima * sizeof(int));
+        for (int i = 0; i < dimensiune_maxima; i++)
+            table_of_variables[i].array[i] = 0;
+    }
+    else if (strcmp(trim(tip), "float") == 0)
+    {
+        sprintf(error_msg, "Imposibila crearea unui vector de %s, folositi int", tip);
+        print_error();
+        return -1;
+    }
+    else if (strcmp(trim(tip), "char") == 0)
+    {
+        sprintf(error_msg, "Imposibila crearea unui vector de %s, folositi int", tip);
+        print_error();
+        return -1;
+    }
+    strcpy(table_of_variables[var_counter].type, "int");
 
     table_of_variables[var_counter].scope = scope;
     table_of_variables[var_counter].if_const = 0;
 }
+
 int declarare_char(char *id, char *contents, int scope)
 {
      if (check_id(id))
