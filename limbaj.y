@@ -38,6 +38,11 @@ struct Var_info
      int scope; // 0 -global , 1 - local
      char str_val[STRING_BUFFER];
      int if_const;
+
+     int array_size;
+     int* array;
+     int* has_elements;
+
     // int id_line;
 };
 
@@ -506,6 +511,7 @@ declaratie
      | CONST TIP ID ';'                  { if( declarare_global_integers( $2, $3 , 1 , 9999999 ) == -1 ) exit(0); }
      | CHAR ID ';'                       { if( declarare_char( $2 , "empty", 0) == -1 ) exit(0); }
      | CHAR ID '=' STRING ';'            { if( declarare_char( $2 , $4, 0) == -1 ) exit(0); }        
+     | ARRAY TIP ID '[' NR ']' ';'       //{ declarare_vector( $2 , $3 , $5 ); }     char* tip , char* nume, int dimensiune_maxima
      ;
 
 
@@ -538,6 +544,7 @@ declaratie_class
      | CONST TIP ID '=' expresie ';'
      | CHAR ID ';'
      | CHAR ID '=' STRING ';'
+     | ARRAY TIP ID '[' NR ']' ';'
      ;
 
 declaratie_metoda   : FCT TIP ID lista_tip_parametrii EFCT 
@@ -587,6 +594,7 @@ declarari_main
      | CONST TIP ID ';'                 { if( declarare_main($2 , $3 , 1 , 9999999) == -1 ) exit(0);}     
      | CHAR ID ';'                      { if( declarare_char( $2 , "empty", 1) == -1 ) exit(0); }
      | CHAR ID '=' STRING ';'           { if( declarare_char( $2 , $4, 1 ) == -1 ) exit(0); }         
+     | ARRAY TIP ID '[' NR ']' ';'      //{ declarare_vector( $2 , $3 , $5 ); }     char* tip , char* nume, int dimensiune_maxima
      ;
 
 
@@ -606,6 +614,18 @@ statement
                                                        }
      | ID '=' ID '(' lista_apel ')' ';'               { if( check_if_type_concide( $1 , $3 , $5 ) == 0 ) exit(0); }
      | ID '=' ID '(' ')' ';'                          { if( check_if_type_concide( $1 , $3 , "null" ) == 0 ) exit(0); }
+     | ID '[' NR ']' '=' expresie ';'                 //{ char temp[100]; bzero(temp, 100); strcpy(temp,$1);
+                                                       //if( strcmp("char",get_id_type(temp)) == 0 ) 
+                                                       //{  
+                                                       //     sprintf(error_msg, "NU se pot face asignari la variabile de tip char, linia %d.", yylineno);
+                                                       //     print_error();
+                                                       //     exit(0);
+                                                       //}
+                                                       //int rez = evalAST( $6 );
+                                                       //if( assign_expression_to_array_el( $1 , $3 , rez )  != 1 ) exit(0); 
+                                                       //}
+     | ID '[' NR ']' '=' ID '(' lista_apel ')' ';'    //{ if( check_if_type_concide( $1 , $6 , $8 ) == 0 ) exit(0); }
+     | ID '[' NR ']' '=' ID '(' ')' ';'               //{ if( check_if_type_concide( $1 , $6 , "null" ) == 0 ) exit(0); }
      ;
      
 apel_instr_control
@@ -636,6 +656,7 @@ expresie :  expresie '+' expresie       { $$ = buildAST( "+" , $1 , $3 , OP ); }
                                              sprintf( nume , "%d" , $1 );
                                              $$ = buildAST( nume , NULL , NULL , NUMAR ); 
                                         }
+          | ID '[' NR ']'               // { cer valoarea ID[NR]  }
           ;
 
 lista_apel
