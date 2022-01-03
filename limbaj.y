@@ -117,6 +117,41 @@ int assign_value_if_null()
      return 0;
 }
 
+int declarare_vector(char *tip, char *nume, int dimensiune_maxima)
+{
+    if (check_id(nume))
+    {
+        sprintf(error_msg, "O variabila cu acelasi nume %s a fost deja declarta anterior.", nume);
+        print_error();
+        return -1;
+    }
+    strcpy(table_of_variables[var_counter].name, trim(nume));
+
+    table_of_variables[var_counter].has_elements = 0;
+    table_of_variables[var_counter].array_size = dimensiune_maxima;
+    strcpy(table_of_variables[var_counter].type, trim(tip));
+
+    // allocate space depending on type
+    if (strcmp(trim(tip), "int") == 0)
+    {
+        table_of_variables[var_counter].array = malloc(dimensiune_maxima * sizeof(int));
+        for (int i = 0; i < 3; i++)
+            table_of_variables[i].array[i] = 0;
+    }
+    if (strcmp(trim(tip), "float") == 0)
+    {
+        table_of_variables[var_counter].array = malloc(dimensiune_maxima * sizeof(float));
+    }
+
+    if (strcmp(trim(tip), "char") == 0)
+    {
+        table_of_variables[var_counter].array = malloc(dimensiune_maxima * 4); // 4 is usuallu the size of a string
+    }
+
+    table_of_variables[var_counter].scope = 0;
+    table_of_variables[var_counter].if_const = 0;
+}
+
 int declarare_char(char *id, char *contents, int scope)
 {
      if (check_id(id))
