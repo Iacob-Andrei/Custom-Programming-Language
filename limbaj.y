@@ -279,7 +279,7 @@ int declarare_functie(char *name, char *return_type, char *lista_tipurilor)
      {
           sprintf(error_msg, "Functia %s deja exista.", name);
           print_error();
-          return -1;
+          exit(0);
      }
      strcpy(table_of_functons[func_counter].func_name, name);
      strcpy(table_of_functons[func_counter].func_return_type, return_type);
@@ -292,9 +292,19 @@ int get_id_value(char *nume)
      for (int i = 0; i < var_counter; i++)
      {
           if (strcmp(table_of_variables[i].name, nume) == 0)
+          {
+               if( strcmp( table_of_variables[i].str_val , "array" ) == 0 )
+               {
+                    sprintf(error_msg, "Array %s folosit incorect, specificati o pozitie, linia %d", nume, yylineno);
+                    print_error();
+                    exit(0);
+               }
+
                if( strcmp( table_of_variables[i].str_val , "NULL") != 0 )
                     return table_of_variables[i].val;
+          }
      }
+
      return 9999999;
 }
 
@@ -400,7 +410,7 @@ int declarare_vector(char *tip, char *nume, int dimensiune_maxima, int scope)
           {
                table_of_variables[var_counter].array[j] = 0;
           }
-          
+          strcpy(table_of_variables[var_counter].str_val,"array");
      }
      else if (strcmp(trim(tip), "float") == 0)
      {
@@ -419,6 +429,53 @@ int declarare_vector(char *tip, char *nume, int dimensiune_maxima, int scope)
      table_of_variables[var_counter].scope = scope;
      table_of_variables[var_counter].if_const = 0;
      var_counter++;
+}
+
+int get_array_value( char* nume_array , int poz )
+{
+     for (int i = 0; i < var_counter; i++)
+     {
+          if (strcmp(table_of_variables[i].name, nume_array) == 0)
+               if( table_of_variables[i].array_size > poz  )
+               {
+                    return table_of_variables[i].array[poz];
+               }
+               else
+               {
+                    sprintf(error_msg, "Pozitie inexistenta in array la linia %d", yylineno);
+                    print_error();
+                    exit(0);
+               }
+     }
+     sprintf(error_msg, "Array inexistent, linia %d", yylineno);
+     print_error();
+     exit(0);
+}
+
+int assign_expression_to_array_el( char* nume_array , int poz , int value )
+{
+     if(check_id(nume_array))
+     {
+          for( int i = 0 ; i < var_counter ; i++ )
+          {
+               if( strcmp(table_of_variables[i].name, nume_array) == 0 )
+               {    
+                    if( poz < table_of_variables[i].array_size )
+                    {
+                         table_of_variables[i].array[poz] = value;
+                         return 1;
+                    }
+                    sprintf(error_msg, "Pozitie introdusa la array inexistenta, linia %d", yylineno);
+                    print_error();
+                    exit(0);
+               }
+               
+          }
+     }
+
+     sprintf(error_msg, "Array inexistent, linia %d", yylineno);
+     print_error();
+     exit(0);
 }
 
 struct AST* buildAST( char* nume , struct AST* left , struct AST* right, enum nodetype type )
@@ -554,7 +611,7 @@ declaratie
      | CONST TIP ID ';'                  { if( declarare_global_integers( $2, $3 , 1 , 9999999 ) == -1 ) exit(0); }
      | CHAR ID ';'                       { if( declarare_char( $2 , "empty", 0) == -1 ) exit(0); }
      | CHAR ID '=' STRING ';'            { if( declarare_char( $2 , $4, 0) == -1 ) exit(0); }        
-     | ARRAY TIP ID '[' NR ']' ';'       //{ declarare_vector( $2 , $3 , $5 , 0 ); }     char* tip , char* nume, int dimensiune_maxima, int scope
+     | ARRAY TIP ID '[' NR ']' ';'       { declarare_vector( $2 , $3 , $5 , 0 ); }
      ;
 
 
@@ -657,8 +714,7 @@ statement
                                                        }
      | ID '=' ID '(' lista_apel ')' ';'               { if( check_if_type_concide( $1 , $3 , $5 ) == 0 ) exit(0); }
      | ID '=' ID '(' ')' ';'                          { if( check_if_type_concide( $1 , $3 , "null" ) == 0 ) exit(0); }
-     | ID '[' NR ']' '=' expresie ';'                 //{ int rez = evalAST( $6 );
-                                                       //if( assign_expression_to_array_el( $1 , $3 , rez )  != 1 ) exit(0); }
+     | ID '[' NR ']' '=' expresie ';'                 { int rez = evalAST( $6 ); assign_expression_to_array_el( $1 , $3 , rez ); }
      | ID '[' NR ']' '=' ID '(' lista_apel ')' ';'    { if( check_if_type_concide( $1 , $6 , $8 ) == 0 ) exit(0); }
      | ID '[' NR ']' '=' ID '(' ')' ';'               { if( check_if_type_concide( $1 , $6 , "null" ) == 0 ) exit(0); }
      ;
@@ -691,13 +747,13 @@ expresie :  expresie '+' expresie       { $$ = buildAST( "+" , $1 , $3 , OP ); }
                                              sprintf( nume , "%d" , $1 );
                                              $$ = buildAST( nume , NULL , NULL , NUMAR ); 
                                         }
-          | ID '[' NR ']'               //{ 
-                                        //      int value = get_array_value($1,$3); 
-                                        //      char nume[100];
-                                        //      bzero(nume, 100);
-                                        //      sprintf( nume , "%d" , value );
-                                        //      $$ = buildAST( nume , NULL , NULL , NUMAR );
-                                        // }
+          | ID '[' NR ']'               { 
+                                        int value = get_array_value($1,$3); 
+                                        char nume[100];
+                                        bzero(nume, 100);
+                                        sprintf( nume , "%d" , value );
+                                        $$ = buildAST( nume , NULL , NULL , NUMAR );
+                                        }
           ;
 
 lista_apel
@@ -731,11 +787,29 @@ void print_variables()
           char buffer[FILE_MEMORY];
           bzero(buffer, FILE_MEMORY);
 
-          sprintf(buffer, "name: %s, type: %s, const: %d, val: %s, scope: %d\n",
-                    table_of_variables[i].name, table_of_variables[i].type,
-                    table_of_variables[i].if_const, table_of_variables[i].str_val, table_of_variables[i].scope);
-          printf("%s",buffer);
-          fputs(buffer, fPtr);
+          if( strcmp(table_of_variables[i].str_val,"array") == 0 )
+          {
+               sprintf(buffer , "name: %s, number of elements: %d, scope: %d, cu elementele:\n" , table_of_variables[i].name, table_of_variables[i].array_size,  table_of_variables[i].scope);
+               printf("%s",buffer);
+               fputs(buffer, fPtr);
+
+               for(int j = 0 ; j < table_of_variables[i].array_size ; j++ )
+               {
+                    bzero(buffer, FILE_MEMORY);
+                    sprintf( buffer , "\t %s[%d] = %d\n", table_of_variables[i].name , j , table_of_variables[i].array[j] );
+
+                    printf("%s",buffer);
+                    fputs(buffer, fPtr);
+               }
+          }
+          else
+          {
+               sprintf(buffer, "name: %s, type: %s, const: %d, val: %s, scope: %d\n",
+                         table_of_variables[i].name, table_of_variables[i].type,
+                         table_of_variables[i].if_const, table_of_variables[i].str_val, table_of_variables[i].scope);
+               printf("%s",buffer);
+               fputs(buffer, fPtr);
+          }
      }
      printf("------------------------------------------------------");
      fclose(fPtr);

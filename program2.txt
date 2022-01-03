@@ -10,10 +10,10 @@ end_global
 
 begin_fct
 
-function int func1 (int)
+function int func1 (int,char)
 end_function
 
-function int func2 ()
+function int func1 (char,int)
 end_function
 
 
@@ -21,6 +21,8 @@ def_class clasa1
 
 	function int metoda2 ()
 	end_function
+
+	array int b[100];
 
 	int b;
 	int b2 = 244;
@@ -34,13 +36,19 @@ end_fct
 
 main 
 
-float variabila_main;
-float variabila2 = 5234.42;
+int variabila2 = 5234;
 const int var3 = 32;
 
 char string2 = "banana";
 
+array int nume[10];
 
-func2();
+nume[2] = 4;
+
+print("valoare lui b este ", 23 + nume );
+
 
 end_main
+
+
+

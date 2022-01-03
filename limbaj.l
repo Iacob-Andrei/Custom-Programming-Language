@@ -38,7 +38,7 @@
 "main"                               {return MAIN;}
 "end_main"                           {return ENDMAIN;}
 
-"def class"                          {return CLASS;}
+"def_class"                          {return CLASS;}
 "end_defclass"                       {return ENDCLASS;}
 
 [_a-zA-Z][_a-zA-Z0-9]*               {yylval.str = strdup(yytext); return ID;}
