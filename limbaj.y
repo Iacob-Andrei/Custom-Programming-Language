@@ -96,43 +96,43 @@ int assign_value_if_null()
      return 0;
 }
 
-int delcarare_char(char *id, char *contents, int scope)
+int declarare_char(char *id, char *contents, int scope)
 {
-    if (check_id(id))
-    {
-        sprintf(error_msg, "Variabila %s a fost deja declarta anterior.", id);
-        print_error();
-        return -1;
-    }
-    strcpy(table_of_variables[var_counter].name, trim(id));
+     if (check_id(id))
+     {
+          sprintf(error_msg, "Variabila %s a fost deja declarta anterior.", id);
+          print_error();
+          return -1;
+     }
+     strcpy(table_of_variables[var_counter].name, trim(id));
 
-    // declare scope
-    table_of_variables[var_counter].scope = 1; // main
+     // declare scope
+     table_of_variables[var_counter].scope = 1; // main
 
-    // if const
-    // TO DO? CHAR poate fi constanta?
-    table_of_variables[var_counter].if_const = 0;
+     // if const
+     // TO DO? CHAR poate fi constanta?
+     table_of_variables[var_counter].if_const = 0;
 
-    if ((table_of_variables[var_counter].if_const == 1) && (strcmp(trim(contents), "empty") == 0))
-    {
-        sprintf(error_msg, "Constanta %s a fost declarata fara valoare\n", id);
-        print_error();
-        return -1;
-    }
+     if ((table_of_variables[var_counter].if_const == 1) && (strcmp(trim(contents), "empty") == 0))
+     {
+          sprintf(error_msg, "Constanta %s a fost declarata fara valoare\n", id);
+          print_error();
+          return -1;
+     }
 
-    strcpy(table_of_variables[var_counter].type, "char");
+     strcpy(table_of_variables[var_counter].type, "char");
 
-    // asssigning value
-    table_of_variables[var_counter].val = 1; // value for the string was defined. it exists
+     // asssigning value
+     table_of_variables[var_counter].val = 1; // value for the string was defined. it exists
 
-    sprintf(table_of_variables[var_counter].str_val, "%s", contents);
+     sprintf(table_of_variables[var_counter].str_val, "%s", contents);
 
-    if (strcmp(trim(contents), "empty") == 0)
-    {
-        table_of_variables[var_counter].val = 0; // the string wasn't actually defined
-    }
-    var_counter++;
-    return 0;
+     if (strcmp(trim(contents), "empty") == 0)
+     {
+          table_of_variables[var_counter].val = 0; // the string wasn't actually defined
+     }
+     var_counter++;
+     return 0;
 }
 
 int declarare_global_integers(char *type_var, char *id, int check_const, int actual_value)
@@ -239,16 +239,19 @@ int check_function(char *nume_functie, char *type, char *lista_tipuri_argumente)
 int check_run_function(char *nume_functie, char *lista_tipuri_argumente)
 {
      for (int i = 0; i < func_counter; i++)
-     {
+     {    
           if (strcmp(table_of_functons[i].func_name, nume_functie) == 0)
           {
                if ((strcmp(table_of_functons[i].list_of_types, lista_tipuri_argumente) == 0))
                {
                     return 0;
                }
+               sprintf(error_msg, "Functia %s are alti parametrii.\n", nume_functie);
+               print_error();
+               return 1;
           }
      }
-     sprintf(error_msg, "Functia nu %s exista. ", nume_functie);
+     sprintf(error_msg, "Functia %s nu exista.\n", nume_functie);
      print_error();
      return 1;
 }
@@ -325,7 +328,7 @@ char* return_type_function( char *nume_functie, char *lista_tipuri_argumente )
                }
           }
      }
-     sprintf(error_msg, "Functia nu %s exista. ", nume_functie);
+     sprintf(error_msg, "Functia %s nu exista. ", nume_functie);
      print_error();
      return "eroare";
 }
@@ -386,7 +389,7 @@ int check_if_type_concide( char *var_name , char *func_name, char *lista_tip_par
 
 %start progr
 %%
-progr: bloc1 bloc2 bloc3 {printf("program corect sintactic\n");}
+progr: bloc1 bloc2 bloc3 {printf("\nProgram corect sintactic!\n\n");}
      ;
 
 // declaratii globale = bloc1
@@ -400,12 +403,12 @@ declaratii_globale
      ;
 
 declaratie 
-     : TIP ID ';'                        { declarare_global_integers( $1, $2 , 0 , 0 ); }
-     | TIP ID '=' expresie ';'           { declarare_global_integers( $1, $2 , 0 , $4 ); }
-     | CONST TIP ID '=' expresie ';'     { declarare_global_integers( $2, $3 , 1 , $5 ); }
+     : TIP ID ';'                        { if( declarare_global_integers( $1, $2 , 0 , 0 ) == -1 ) exit(0); }
+     | TIP ID '=' expresie ';'           { if( declarare_global_integers( $1, $2 , 0 , $4 ) == -1 ) exit(0); }
+     | CONST TIP ID '=' expresie ';'     { if( declarare_global_integers( $2, $3 , 1 , $5 ) == -1 ) exit(0); }
      | CONST TIP ID ';'                  { if( declarare_global_integers( $2, $3 , 1 , 9999999 ) == -1 ) exit(0); }
-     | CHAR ID ';'                       //{ declarare_char( $2 , "empty", 0); }
-     | CHAR ID '=' STRING ';'            //{ declarare_char( $2 , $4, 0); }            char* ID, char* value_string, int scope
+     | CHAR ID ';'                       { if( declarare_char( $2 , "empty", 0) == -1 ) exit(0); }
+     | CHAR ID '=' STRING ';'            { if( declarare_char( $2 , $4, 0) == -1 ) exit(0); }        
      ;
 
 
@@ -432,7 +435,7 @@ bloc_class     : bloc_class declaratie_functie
                | declaratie 
                ;
 
-declaratie_functie : FCT TIP ID lista_tip_parametrii bloc_functie EFCT      { declarare_functie( $3, $2, $4);}  
+declaratie_functie : FCT TIP ID lista_tip_parametrii bloc_functie EFCT      { if( declarare_functie( $3, $2, $4) == -1 ) exit(0); }  
 
 lista_tip_parametrii
      : '('  ')'                     { $$ = malloc(5); strcpy( $$ , "null"); }
@@ -470,12 +473,12 @@ print_function
      ;
 
 declarari_main
-     : TIP ID ';'                       { declarare_main($1 , $2 , 0 , -9999999); }
-     | TIP ID '=' expresie ';'          { declarare_main($1 , $2 , 0 , $4); }
-     | CONST TIP ID '=' expresie ';'    { declarare_main($2 , $3 , 1 , $5); } 
-     | CONST TIP ID ';'                 { if( declarare_main($2 , $3 , 1 , 9999999) == -1 ) exit(0);}     //caz eroare
-     | CHAR ID ';'                      //{ declarare_char( $2 , "empty", 1); }
-     | CHAR ID '=' STRING ';'           //{ declarare_char( $2 , $4, 1); }            char* ID, char* value_string, int scope
+     : TIP ID ';'                       { if( declarare_main($1 , $2 , 0 , -9999999) == -1 ) exit(0); }
+     | TIP ID '=' expresie ';'          { if( declarare_main($1 , $2 , 0 , $4) == -1 ) exit(0); }
+     | CONST TIP ID '=' expresie ';'    { if( declarare_main($2 , $3 , 1 , $5) == -1 ) exit(0); } 
+     | CONST TIP ID ';'                 { if( declarare_main($2 , $3 , 1 , 9999999) == -1 ) exit(0);}     
+     | CHAR ID ';'                      { if( declarare_char( $2 , "empty", 1) == -1 ) exit(0); }
+     | CHAR ID '=' STRING ';'           { if( declarare_char( $2 , $4, 1 ) == -1 ) exit(0); }         
      ;
 
 
@@ -483,7 +486,7 @@ declarari_main
 statement
      : ID '(' lista_apel ')' ';'                      { if( check_run_function( $1, $3 ) == 1 ) exit(0); }
      | ID '(' ')' ';'                                 { if( check_run_function( $1, "null" ) == 1 ) exit(0); }
-     | ID '=' expresie ';'                            { assign_expression( $1 , $3); }
+     | ID '=' expresie ';'                            { if( assign_expression( $1 , $3)  != 1 ) exit(0); }
      | ID '=' ID '(' lista_apel ')' ';'               { if( check_if_type_concide( $1 , $3 , $5 ) == 0 ) exit(0); }
      | ID '=' ID '(' ')' ';'                          { if( check_if_type_concide( $1 , $3 , "null" ) == 0 ) exit(0); }
      ;
@@ -495,8 +498,8 @@ apel_instr_control
      | DO list EWHILE '(' conditie ')'
      | FOR ID '=' NR TO ID DO list EFOR                        { if(check_id($2) == 0 ) exit(0);  if(check_id($6) == 0 ) exit(0);}
      | FOR ID '=' NR TO NR DO list EFOR                        { if(check_id($2) == 0 ) exit(0); }
-     | FOR ID '=' ID TO ID DO list EFOR                        {check_id($2); check_id($4); check_id($6);}
-     | FOR ID '=' ID TO NR DO list EFOR                        {check_id($2); check_id($4);}
+     | FOR ID '=' ID TO ID DO list EFOR                        { if(check_id($2) == 0 ) exit(0); if(check_id($4) == 0 ) exit(0); if(check_id($6) == 0 ) exit(0);}
+     | FOR ID '=' ID TO NR DO list EFOR                        { if(check_id($2) == 0 ) exit(0); if(check_id($4) == 0 ) exit(0);}
      ;
 
 
@@ -507,17 +510,17 @@ conditie  : '(' expresie ')'
 expresie :  expresie '+' expresie       { $$ = $1 + $3; }
           | expresie '-' expresie       { $$ = $1 - $3; }
           | expresie '*' expresie       { $$ = $1 * $3; }
-          | expresie '/' expresie       { if($3 == 0) printf("eroare.."); else $$ = $1 / $3;}
+          | expresie '/' expresie       { if($3 == 0) {printf("EROARE impartire la 0 la linia %d!!\n",yylineno); exit(0); } else $$ = $1 / $3;}
           | '(' expresie ')'            { $$ = $2; }
-          | ID                          { $$ = get_id_value($1); }    // check if integer, daca e altceva trimite eroare
+          | ID                          { $$ = get_id_value($1); if( $$ == 9999999 ) { printf("EROARE identificator %s inexistent\n", $1); exit(0); }}    // check if integer, daca e altceva trimite eroare
           | NR                          { $$ = $1;}
           ;
 
 lista_apel
      : NR                               { strcpy($$,"int");  }
      | lista_apel ',' NR                { strcat($$,",int"); }
-     | ID                               { strcpy($$, get_id_type($1)); }
-     | lista_apel ',' ID                { strcat($$,","); strcat($$, get_id_type($1)); }
+     | ID                               { char temp[100]; bzero(temp,100); strcpy(temp, $1); strcpy($$, get_id_type(temp)); if( strcmp( $$ , "no type" ) == 0 )  { printf("EROARE identificator %s inexistent la linia !\n", temp, yylineno); exit(0); } }
+     | lista_apel ',' ID                { strcat($$,","); strcat($$, get_id_type($3)); if( strstr( $$ , "no type" ) != NULL ) { printf("EROARE identificator %s inexistent la linia %d\n", $3, yylineno); exit(0); } }
      ;
 
 %%
@@ -536,7 +539,8 @@ void print_variables()
           printf("Unable to create file.\n");
           exit(EXIT_FAILURE);
      }
-     printf("Variabilele declarate:\n");
+     printf("------------------------------------------------------");
+     printf("\nVariabilele declarate:\n");
 
      for (int i = 0; i < var_counter; i++)
      {
@@ -548,6 +552,7 @@ void print_variables()
           printf("%s",buffer);
           fputs(buffer, fPtr);
      }
+     printf("------------------------------------------------------");
      fclose(fPtr);
      printf("\n\n");
 }
@@ -561,7 +566,9 @@ void print_functions()
           printf("Unable to create file.\n");
           exit(EXIT_FAILURE);
      }
-     printf("Functiile declarate sunt:\n");
+
+     printf("------------------------------------------------------");
+     printf("\nFunctiile declarate sunt:\n");
 
      for (int i = 0; i < func_counter; i++)
      {
@@ -575,6 +582,7 @@ void print_functions()
           printf("%s", buffer);
           fputs(buffer, fPtr);
      }
+     printf("------------------------------------------------------");
      fclose(fPtr);
      printf("\n\n");
 }
