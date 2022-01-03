@@ -132,21 +132,10 @@ int declarare_vector(char *tip, char *nume, int dimensiune_maxima)
     strcpy(table_of_variables[var_counter].type, trim(tip));
 
     // allocate space depending on type
-    if (strcmp(trim(tip), "int") == 0)
-    {
-        table_of_variables[var_counter].array = malloc(dimensiune_maxima * sizeof(int));
-        for (int i = 0; i < 3; i++)
-            table_of_variables[i].array[i] = 0;
-    }
-    if (strcmp(trim(tip), "float") == 0)
-    {
-        table_of_variables[var_counter].array = malloc(dimensiune_maxima * sizeof(float));
-    }
 
-    if (strcmp(trim(tip), "char") == 0)
-    {
-        table_of_variables[var_counter].array = malloc(dimensiune_maxima * 4); // 4 is usuallu the size of a string
-    }
+    table_of_variables[var_counter].array = malloc(dimensiune_maxima * sizeof(int));
+    for (int i = 0; i < dimensiune_maxima; i++)
+        table_of_variables[i].array[i] = 0;
 
     table_of_variables[var_counter].scope = 0;
     table_of_variables[var_counter].if_const = 0;
