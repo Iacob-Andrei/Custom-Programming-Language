@@ -14,6 +14,22 @@ extern int yylineno;
 #define ERROR_BUFFER 100
 #define ARRAY_SIZE 100
 
+enum nodetype{
+     OP = 1,
+     IDENTIF = 2,
+     NUMAR = 3,
+     VECTOREL = 4,
+     OTHERS = 5
+};
+
+struct AST
+{
+     struct AST* left;
+     struct AST* right;
+     enum nodetype node_type;
+     char* name;
+};
+
 struct Var_info
 {
      char name[STRING_BUFFER];
@@ -357,6 +373,89 @@ int check_if_type_concide( char *var_name , char *func_name, char *lista_tip_par
      return 1;
 }
 
+struct AST* buildAST( char* nume , struct AST* left , struct AST* right, enum nodetype type )
+{
+     struct AST* newnode = (struct AST*)malloc(sizeof(struct AST));
+
+     newnode->name = strdup(nume);
+     newnode->left = left;
+     newnode->right = right;
+     newnode->node_type = type;
+
+     return newnode;
+} 
+
+int evalAST( struct AST* tree )
+{
+     if( tree->left == NULL && tree->right == NULL )        // sunt pe o frunza
+     {
+          if( tree->node_type == 2 )    // identificator
+          {
+               int val = get_id_value( tree->name );
+
+               char tip[10];
+               bzero( tip , 10 );
+               strcpy( tip , get_id_type( tree->name ) );
+
+               if( strcmp( tip , "char" ) == 0 )
+               {
+                    sprintf(error_msg, "Variabila %s este de tip char. NU poate fi folosita intr-o expresie!", tree->name);
+                    print_error();
+                    exit(0);
+               }
+
+               if( val == 9999999 )
+               {
+                    sprintf(error_msg, "Variabila %s nu are valoare.", tree->name);
+                    print_error();
+                    exit(0);
+               }
+               else
+               {
+                    return val;
+               }
+          }
+          else if( tree->node_type == 3 )  // NUMAR
+          {
+               int val = atoi(tree->name);
+               return val;
+          }
+          else      // OTHERS
+          {
+               return 0;
+          }
+     }
+     else
+     {
+          int rezultat_stanga = evalAST( tree->left );
+          int rezultat_dreapta = evalAST( tree->right );
+
+          if( strcmp( tree->name , "+" ) == 0 )
+          {
+               return rezultat_dreapta + rezultat_stanga ;
+          }
+          else if( strcmp( tree->name , "-" ) == 0 ) 
+          {
+               return rezultat_stanga - rezultat_dreapta ;
+          }
+          else if( strcmp( tree->name , "*" ) == 0 ) 
+          {
+               return rezultat_stanga * rezultat_dreapta ;
+          }
+          else if( strcmp( tree->name , "/" ) == 0 ) 
+          {
+               if( rezultat_dreapta != 0 ) 
+                    return rezultat_stanga - rezultat_dreapta ;
+               else
+               {
+                    sprintf(error_msg, "NU se poate face impartire la 0!");
+                    print_error();
+                    exit(0);
+               }
+          }
+     }
+}
+
 %}
 
 
@@ -364,6 +463,7 @@ int check_if_type_concide( char *var_name , char *func_name, char *lista_tip_par
 {
      char* str;
      int intnr;
+     struct AST* tree;
 }
 
 %token CONST ARRAY PRINT
@@ -375,7 +475,7 @@ int check_if_type_concide( char *var_name , char *func_name, char *lista_tip_par
 %token <str> ID TIP STRING CHAR
 %token <intnr> NR
 %type  <str> lista_tip_parametrii parametrii lista_apel
-%type  <intnr> expresie
+%type  <tree> expresie
 
 %left '-'
 %left '+'
@@ -401,8 +501,8 @@ declaratii_globale
 
 declaratie 
      : TIP ID ';'                        { if( declarare_global_integers( $1, $2 , 0 , 0 ) == -1 ) exit(0); }
-     | TIP ID '=' expresie ';'           { if( declarare_global_integers( $1, $2 , 0 , $4 ) == -1 ) exit(0); }
-     | CONST TIP ID '=' expresie ';'     { if( declarare_global_integers( $2, $3 , 1 , $5 ) == -1 ) exit(0); }
+     | TIP ID '=' expresie ';'           { int rez = evalAST($4); if( declarare_global_integers( $1, $2 , 0 , rez ) == -1 ) exit(0); }
+     | CONST TIP ID '=' expresie ';'     { int rez = evalAST($5); if( declarare_global_integers( $2, $3 , 1 , rez ) == -1 ) exit(0); }
      | CONST TIP ID ';'                  { if( declarare_global_integers( $2, $3 , 1 , 9999999 ) == -1 ) exit(0); }
      | CHAR ID ';'                       { if( declarare_char( $2 , "empty", 0) == -1 ) exit(0); }
      | CHAR ID '=' STRING ';'            { if( declarare_char( $2 , $4, 0) == -1 ) exit(0); }        
@@ -482,8 +582,8 @@ print_function
 
 declarari_main
      : TIP ID ';'                       { if( declarare_main($1 , $2 , 0 , -9999999) == -1 ) exit(0); }
-     | TIP ID '=' expresie ';'          { if( declarare_main($1 , $2 , 0 , $4) == -1 ) exit(0); }
-     | CONST TIP ID '=' expresie ';'    { if( declarare_main($2 , $3 , 1 , $5) == -1 ) exit(0); } 
+     | TIP ID '=' expresie ';'          { int rez = evalAST($4); if( declarare_main($1 , $2 , 0 , rez) == -1 ) exit(0); }
+     | CONST TIP ID '=' expresie ';'    { int rez = evalAST($5); if( declarare_main($2 , $3 , 1 , rez) == -1 ) exit(0); } 
      | CONST TIP ID ';'                 { if( declarare_main($2 , $3 , 1 , 9999999) == -1 ) exit(0);}     
      | CHAR ID ';'                      { if( declarare_char( $2 , "empty", 1) == -1 ) exit(0); }
      | CHAR ID '=' STRING ';'           { if( declarare_char( $2 , $4, 1 ) == -1 ) exit(0); }         
@@ -501,7 +601,8 @@ statement
                                                             print_error();
                                                             exit(0);
                                                        }
-                                                       if( assign_expression( $1 , $3)  != 1 ) exit(0); \
+                                                       int rez = evalAST( $3 );
+                                                       if( assign_expression( $1 , rez)  != 1 ) exit(0); 
                                                        }
      | ID '=' ID '(' lista_apel ')' ';'               { if( check_if_type_concide( $1 , $3 , $5 ) == 0 ) exit(0); }
      | ID '=' ID '(' ')' ';'                          { if( check_if_type_concide( $1 , $3 , "null" ) == 0 ) exit(0); }
@@ -523,13 +624,18 @@ conditie  : '(' expresie ')'
           | conditie OPREL conditie
           ;
 
-expresie :  expresie '+' expresie       { $$ = $1 + $3; }
-          | expresie '-' expresie       { $$ = $1 - $3; }
-          | expresie '*' expresie       { $$ = $1 * $3; }
-          | expresie '/' expresie       { if($3 == 0) {printf("EROARE impartire la 0 la linia %d!!\n",yylineno); exit(0); } else $$ = $1 / $3;}
+expresie :  expresie '+' expresie       { $$ = buildAST( "+" , $1 , $3 , OP ); }
+          | expresie '-' expresie       { $$ = buildAST( "-" , $1 , $3 , OP ); }
+          | expresie '*' expresie       { $$ = buildAST( "*" , $1 , $3 , OP ); }
+          | expresie '/' expresie       { $$ = buildAST( "/" , $1 , $3 , OP ); }
           | '(' expresie ')'            { $$ = $2; }
-          | ID                          { if( strstr( "int float" , get_id_type($1) ) == NULL ) { printf("S-a incercat o asignare de tip string la int!\n"); exit(0); }  $$ = get_id_value($1); if( $$ == 9999999 ) { printf("EROARE identificator %s inexistent sau fara valoare\n", $1); exit(0); }}
-          | NR                          { $$ = $1;}
+          | ID                          { $$ = buildAST( $1 , NULL , NULL , IDENTIF ); }
+          | NR                          { 
+                                             char nume[100];
+                                             bzero(nume, 100);
+                                             sprintf( nume , "%d" , $1 );
+                                             $$ = buildAST( nume , NULL , NULL , NUMAR ); 
+                                        }
           ;
 
 lista_apel
