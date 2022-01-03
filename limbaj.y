@@ -530,7 +530,7 @@ int yyerror(char * s)
 void print_variables()
 {
      FILE *fPtr;
-     fPtr = fopen("symbol_table_functions.txt", "w");
+     fPtr = fopen("symbol_table.txt", "w");
      if (fPtr == NULL)
      {
           printf("Unable to create file.\n");
@@ -555,7 +555,7 @@ void print_variables()
 void print_functions()
 {
      FILE *fPtr;
-     fPtr = fopen("symbol_table.txt", "w");
+     fPtr = fopen("symbol_table_functions.txt", "w");
      if (fPtr == NULL)
      {
           printf("Unable to create file.\n");
