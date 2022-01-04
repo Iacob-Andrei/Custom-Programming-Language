@@ -216,7 +216,7 @@ int declarare_global_integers(char *type_var, char *id, int check_const, int act
      }
      else
      {
-          sprintf(error_msg, "Trying to assign a non-in int a \"declare_integer\" function %s at line %d", id, yylineno);
+          sprintf(error_msg, "Trying to assign a non-int type in a \"declare_integer\" function %s at line %d", id, yylineno);
           print_error();
           exit(0);
      }
@@ -240,7 +240,7 @@ int declarare_main(char *type_var, char *id, int check_const, int actual_value)
      
      if ((actual_value == 9999999))
      {
-          sprintf(error_msg, "Constanta %s a fost declarata fara valoare\n la linia %d", id, yylineno);
+          sprintf(error_msg, "Constanta %s a fost declarata fara valoare la linia %d", id, yylineno);
           print_error();
           exit(0);
      }
