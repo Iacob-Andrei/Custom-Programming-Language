@@ -758,7 +758,7 @@ apel_instr_control
                                                                  {
                                                                       sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$2);
                                                                       print_error();
-                                                                      eixt(0);
+                                                                      exit(0);
                                                                  }
                                                             }
 
