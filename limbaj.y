@@ -95,7 +95,7 @@ int check_constant(char *nume)
      // check existence before returning value
      if (!check_id(nume))
      {
-          sprintf(error_msg, "Variabila %s nu exista pentru a verifica daca e constanta sau nu. ", nume);
+          sprintf(error_msg, "Variabila %s nu exista pentru a verifica daca e constanta sau nu la linia %d", nume, yylineno);
           print_error();
           return -1;
      }
@@ -152,7 +152,7 @@ int declarare_char(char *id, char *contents, int scope)
 {
      if (check_id(id))
      {
-          sprintf(error_msg, "Variabila %s a fost deja declarta anterior.", id);
+          sprintf(error_msg, "Linia %d, Variabila %s a fost deja declarta anterior.", yylineno, id);
           print_error();
           exit(0);
      }
@@ -167,7 +167,7 @@ int declarare_char(char *id, char *contents, int scope)
 
      if ((table_of_variables[var_counter].if_const == 1) && (strcmp(trim(contents), "empty") == 0))
      {
-          sprintf(error_msg, "Constanta %s a fost declarata fara valoare\n", id);
+          sprintf(error_msg, "Constanta %s a fost declarata fara valoare, linia %d\n", id, yylineno);
           print_error();
           exit(0);
      }
@@ -191,14 +191,14 @@ int declarare_global_integers(char *type_var, char *id, int check_const, int act
 {
      if (check_id(id))
      {
-          sprintf(error_msg, "Variabila %s a fost deja declarta anterior.", id);
+          sprintf(error_msg, "Linia %d. Variabila %s a fost deja declarta anterior.",yylineno, id);
           print_error();
           exit(0);
      }
      
      if ((actual_value == 9999999))
      {
-          sprintf(error_msg, "Constanta %s a fost declarata fara valoare", id);
+          sprintf(error_msg, "Constanta %s a fost declarata fara valoare la linia %d", id, yylineno);
           print_error();
           exit(0);
      }
@@ -216,7 +216,7 @@ int declarare_global_integers(char *type_var, char *id, int check_const, int act
      }
      else
      {
-          sprintf(error_msg, "Trying to assign a non-in in a \"declare_integer\" function %s", id);
+          sprintf(error_msg, "Trying to assign a non-in int a \"declare_integer\" function %s at line %d", id, yylineno);
           print_error();
           exit(0);
      }
@@ -233,14 +233,14 @@ int declarare_main(char *type_var, char *id, int check_const, int actual_value)
 {
      if (check_id(id))
      {
-          sprintf(error_msg, "Variabila %s a fost deja declarta anterior.", id);
+          sprintf(error_msg, "Variabila %s a fost deja declarta anterior. Linia %d", id, yylineno);
           print_error();
           exit(0);
      }
      
      if ((actual_value == 9999999))
      {
-          sprintf(error_msg, "Constanta %s a fost declarata fara valoare\n", id);
+          sprintf(error_msg, "Constanta %s a fost declarata fara valoare\n la linia %d", id, yylineno);
           print_error();
           exit(0);
      }
@@ -297,7 +297,7 @@ int check_run_function(char *nume_functie, char *lista_tipuri_argumente)
                return 1;
           }
      }
-     sprintf(error_msg, "Functia %s nu exista.\n", nume_functie);
+     sprintf(error_msg, "Functia %s nu exista. Linia %d\n", nume_functie, yylineno);
      print_error();
      exit(0);
 }
@@ -306,7 +306,7 @@ int declarare_functie(char *name, char *return_type, char *lista_tipurilor)
 {
      if(check_function(name, return_type, lista_tipurilor))
      {
-          sprintf(error_msg, "Functia %s deja exista.", name);
+          sprintf(error_msg, "Linia %d. Functia %s deja exista.", yylineno, name);
           print_error();
           exit(0);
      }
@@ -342,7 +342,7 @@ int assign_expression(char *name, int value)
     // check if constant
      if (check_constant(name))
      {
-          sprintf(error_msg, "Impossible to assign a value to a constant variable: %s", name);
+          sprintf(error_msg, "Impossible to assign a value to a constant variable: %s, line %d", name, yylineno);
           print_error();
           return -1;
      }
@@ -375,7 +375,7 @@ char* return_type_function( char *nume_functie, char *lista_tipuri_argumente )
                }
           }
      }
-     sprintf(error_msg, "Functia %s nu exista. ", nume_functie);
+     sprintf(error_msg, "Functia %s nu exista. Linia %d", nume_functie, yylineno);
      print_error();
      return "eroare";
 }
@@ -384,7 +384,7 @@ int check_if_type_concide( char *var_name , char *func_name, char *lista_tip_par
 {
      if( check_constant(var_name) == 1 )
      {
-          sprintf(error_msg, "Variabila %s este constanta. \n", var_name);
+          sprintf(error_msg, "Linia %d. Variabila %s este constanta. \n", yylineno, var_name);
           print_error();
           exit(0);
      } 
@@ -393,7 +393,7 @@ int check_if_type_concide( char *var_name , char *func_name, char *lista_tip_par
      
      if( strcmp( get_id_type(var_name) , return_type_function(func_name , lista_tip_parametrii) ) != 0 )
      {
-          sprintf(error_msg, "Tipuri diferite!. \n");
+          sprintf(error_msg, "Linia %d, tipuri diferite!. \n", yylineno);
           print_error();
           exit(0);
      }
@@ -407,7 +407,7 @@ int declarare_vector(char *tip, char *nume, int dimensiune_maxima, int scope)
 
      if (check_id(nume))
      {
-          sprintf(error_msg, "O variabila cu acelasi nume %s a fost deja declarta anterior.", nume);
+          sprintf(error_msg, "Linia %d. O variabila cu acelasi nume %s a fost deja declarta anterior.",yylineno, nume);
           print_error();
           exit(0);
      }
@@ -428,13 +428,13 @@ int declarare_vector(char *tip, char *nume, int dimensiune_maxima, int scope)
      }
      else if (strcmp(trim(tip), "float") == 0)
      {
-          sprintf(error_msg, "Imposibila crearea unui vector de %s, folositi int", tip);
+          sprintf(error_msg, "Imposibila crearea unui vector de %s, folositi int. Linia %d", tip, yylineno);
           print_error();
           exit(0);
      }
      else if (strcmp(trim(tip), "char") == 0)
      {
-          sprintf(error_msg, "Imposibila crearea unui vector de %s, folositi int", tip);
+          sprintf(error_msg, "Imposibila crearea unui vector de %s, folositi int. Linia %d", tip, yylineno);
           print_error();
           exit(0);
      }
