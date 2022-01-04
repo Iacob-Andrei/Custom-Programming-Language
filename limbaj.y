@@ -737,10 +737,69 @@ apel_instr_control
      | IF '(' conditie ')' list ELSEIF list ENDIF
      | WHILE '(' conditie ')' list EWHILE
      | DO list EWHILE '(' conditie ')'
-     | FOR ID '=' NR TO ID DO list EFOR                        { if(check_id($2) == 0 ) exit(0);  if(check_id($6) == 0 ) exit(0);}
-     | FOR ID '=' NR TO NR DO list EFOR                        { if(check_id($2) == 0 ) exit(0); }
-     | FOR ID '=' ID TO ID DO list EFOR                        { if(check_id($2) == 0 ) exit(0); if(check_id($4) == 0 ) exit(0); if(check_id($6) == 0 ) exit(0);}
-     | FOR ID '=' ID TO NR DO list EFOR                        { if(check_id($2) == 0 ) exit(0); if(check_id($4) == 0 ) exit(0);}
+     | FOR ID '=' NR TO ID DO list EFOR                     { 
+                                                                 if(check_id($2) == 0 ) 
+                                                                 {
+                                                                      sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$2);
+                                                                      print_error();
+                                                                      exit(0);
+                                                                 }  
+                                                                 
+                                                                 if(check_id($6) == 0 )
+                                                                 {
+                                                                      sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$6);
+                                                                      print_error();
+                                                                      exit(0);
+                                                                 }
+                                                            }
+
+     | FOR ID '=' NR TO NR DO list EFOR                     { 
+                                                                 if(check_id($2) == 0 ) 
+                                                                 {
+                                                                      sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$2);
+                                                                      print_error();
+                                                                      eixt(0);
+                                                                 }
+                                                            }
+
+     | FOR ID '=' ID TO ID DO list EFOR                     { 
+                                                                 if(check_id($2) == 0 )
+                                                                 { 
+                                                                      sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$2);
+                                                                      print_error();
+                                                                      exit(0); 
+                                                                 }
+
+                                                                 if(check_id($4) == 0 )
+                                                                 {
+                                                                      sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$4);
+                                                                      print_error();
+                                                                      exit(0);
+                                                                 }
+
+                                                                 if(check_id($6) == 0 )
+                                                                 {
+                                                                      sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$6);
+                                                                      print_error();
+                                                                      exit(0);
+                                                                 }
+                                                            }
+
+     | FOR ID '=' ID TO NR DO list EFOR                     { 
+                                                                 if(check_id($2) == 0 )
+                                                                 {
+                                                                      sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$2);
+                                                                      print_error();
+                                                                      exit(0);
+                                                                 }
+
+                                                                 if(check_id($4) == 0 )
+                                                                 {
+                                                                      sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$2);
+                                                                      print_error();
+                                                                      exit(0);
+                                                                 }
+                                                            }
      ;
 
 
