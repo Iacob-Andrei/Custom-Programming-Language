@@ -80,6 +80,16 @@ char *trim(char *content)
      return content;
 }
 
+int check_inexistence_vars(char *nume)
+{
+     if(check_id(nume) == 0 )
+     {
+          sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno, nume);
+          print_error();
+          exit(0);
+     }
+}
+
 int check_id(char *nume)
 {
      for (int i = 0; i < var_counter; i++)
@@ -738,67 +748,28 @@ apel_instr_control
      | WHILE '(' conditie ')' list EWHILE
      | DO list EWHILE '(' conditie ')'
      | FOR ID '=' NR TO ID DO list EFOR                     { 
-                                                                 if(check_id($2) == 0 ) 
-                                                                 {
-                                                                      sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$2);
-                                                                      print_error();
-                                                                      exit(0);
-                                                                 }  
+                                                                 check_inexistence_vars($2);
                                                                  
-                                                                 if(check_id($6) == 0 )
-                                                                 {
-                                                                      sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$6);
-                                                                      print_error();
-                                                                      exit(0);
-                                                                 }
+                                                                 check_inexistence_vars($6);
                                                             }
 
      | FOR ID '=' NR TO NR DO list EFOR                     { 
-                                                                 if(check_id($2) == 0 ) 
-                                                                 {
-                                                                      sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$2);
-                                                                      print_error();
-                                                                      exit(0);
-                                                                 }
+                                                                 check_inexistence_vars($2);
+                                                                    
                                                             }
 
      | FOR ID '=' ID TO ID DO list EFOR                     { 
-                                                                 if(check_id($2) == 0 )
-                                                                 { 
-                                                                      sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$2);
-                                                                      print_error();
-                                                                      exit(0); 
-                                                                 }
+                                                                 check_inexistence_vars($2);
 
-                                                                 if(check_id($4) == 0 )
-                                                                 {
-                                                                      sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$4);
-                                                                      print_error();
-                                                                      exit(0);
-                                                                 }
+                                                                 check_inexistence_vars($4);
 
-                                                                 if(check_id($6) == 0 )
-                                                                 {
-                                                                      sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$6);
-                                                                      print_error();
-                                                                      exit(0);
-                                                                 }
+                                                                 check_inexistence_vars($6);
                                                             }
 
      | FOR ID '=' ID TO NR DO list EFOR                     { 
-                                                                 if(check_id($2) == 0 )
-                                                                 {
-                                                                      sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$2);
-                                                                      print_error();
-                                                                      exit(0);
-                                                                 }
+                                                                 check_inexistence_vars($2);
 
-                                                                 if(check_id($4) == 0 )
-                                                                 {
-                                                                      sprintf(error_msg, "Linia %d, variabila %s nu este declarata!",yylineno,$2);
-                                                                      print_error();
-                                                                      exit(0);
-                                                                 }
+                                                                 check_inexistence_vars($4);
                                                             }
      ;
 
