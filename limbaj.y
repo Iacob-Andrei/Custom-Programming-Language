@@ -110,6 +110,37 @@ int check_constant(char *nume)
      return 0; // nu are tipul constant
 }
 
+char *get_id_type(char *nume)
+{
+     for (int i = 0; i < var_counter; i++)
+     {
+          if (strcmp(table_of_variables[i].name, nume) == 0)
+               return table_of_variables[i].type;
+     }
+     return (char *)"no type";
+}
+
+int check_if_identifier_exists(char* str1, char* str2)
+{
+     strcpy(str1, get_id_type(str2));
+     if( strcmp( trim(str1), "no type" ) == 0 )  
+     { 
+          sprintf("EROARE identificator %s inexistent la linia !\n", str2, yylineno); 
+          exit(0); 
+     }
+     return 1;
+}
+
+int identifier_help_function(char * str1, char *str2)
+{
+     strcat(str1,","); 
+     strcat(str1, get_id_type(str2)); if( strstr( str1 , "no type" ) != NULL ) 
+     { 
+          printf("EROARE identificator %s inexistent la linia %d\n", str2, yylineno); 
+          exit(0); 
+     }
+}
+
 int assign_value_if_null()
 {
      table_of_variables[var_counter].val = 0;
@@ -123,7 +154,7 @@ int declarare_char(char *id, char *contents, int scope)
      {
           sprintf(error_msg, "Variabila %s a fost deja declarta anterior.", id);
           print_error();
-          return -1;
+          exit(0);
      }
      strcpy(table_of_variables[var_counter].name, trim(id));
 
@@ -138,7 +169,7 @@ int declarare_char(char *id, char *contents, int scope)
      {
           sprintf(error_msg, "Constanta %s a fost declarata fara valoare\n", id);
           print_error();
-          return -1;
+          exit(0);
      }
 
      strcpy(table_of_variables[var_counter].type, "char");
@@ -162,14 +193,14 @@ int declarare_global_integers(char *type_var, char *id, int check_const, int act
      {
           sprintf(error_msg, "Variabila %s a fost deja declarta anterior.", id);
           print_error();
-          return -1;
+          exit(0);
      }
      
      if ((actual_value == 9999999))
      {
           sprintf(error_msg, "Constanta %s a fost declarata fara valoare", id);
           print_error();
-          return -1;
+          exit(0);
      }
      strcpy(table_of_variables[var_counter].name, trim(id));
 
@@ -187,7 +218,7 @@ int declarare_global_integers(char *type_var, char *id, int check_const, int act
      {
           sprintf(error_msg, "Trying to assign a non-in in a \"declare_integer\" function %s", id);
           print_error();
-          return -1;
+          exit(0);
      }
 
      // asssigning value
@@ -204,14 +235,14 @@ int declarare_main(char *type_var, char *id, int check_const, int actual_value)
      {
           sprintf(error_msg, "Variabila %s a fost deja declarta anterior.", id);
           print_error();
-          return -1;
+          exit(0);
      }
      
      if ((actual_value == 9999999))
      {
           sprintf(error_msg, "Constanta %s a fost declarata fara valoare\n", id);
           print_error();
-          return -1;
+          exit(0);
      }
      strcpy(table_of_variables[var_counter].name, trim(id));
 
@@ -244,8 +275,6 @@ int check_function(char *nume_functie, char *type, char *lista_tipuri_argumente)
                if ((strcmp(table_of_functons[i].func_return_type, trim(type)) == 0) &&
                     (strcmp(table_of_functons[i].list_of_types, trim(lista_tipuri_argumente)) == 0))
                {
-                    sprintf(error_msg, "Functia %s deja exista. ", nume_functie);
-                    print_error();
                     return 1;
                }
           }
@@ -270,7 +299,7 @@ int check_run_function(char *nume_functie, char *lista_tipuri_argumente)
      }
      sprintf(error_msg, "Functia %s nu exista.\n", nume_functie);
      print_error();
-     return 1;
+     exit(0);
 }
 
 int declarare_functie(char *name, char *return_type, char *lista_tipurilor)
@@ -306,16 +335,6 @@ int get_id_value(char *nume)
      }
 
      return 9999999;
-}
-
-char *get_id_type(char *nume)
-{
-     for (int i = 0; i < var_counter; i++)
-     {
-          if (strcmp(table_of_variables[i].name, nume) == 0)
-               return table_of_variables[i].type;
-     }
-     return (char *)"no type";
 }
 
 int assign_expression(char *name, int value)
@@ -361,27 +380,22 @@ char* return_type_function( char *nume_functie, char *lista_tipuri_argumente )
      return "eroare";
 }
 
-int check_if_type_concide( char *var_name , char *func_name, char *lista_tip_parametrii  )
+int check_if_type_concide( char *var_name , char *func_name, char *lista_tip_parametrii )
 {
      if( check_constant(var_name) == 1 )
      {
           sprintf(error_msg, "Variabila %s este constanta. \n", var_name);
           print_error();
-          return 0;
+          exit(0);
      } 
 
-     if( check_run_function(func_name,lista_tip_parametrii) == 1 )
-     {
-          sprintf(error_msg, "Functia %s este inexistenta. \n", var_name);
-          print_error();
-          return 0;
-     }
+     check_run_function(func_name,lista_tip_parametrii);
      
      if( strcmp( get_id_type(var_name) , return_type_function(func_name , lista_tip_parametrii) ) != 0 )
      {
           sprintf(error_msg, "Tipuri diferite!. \n");
           print_error();
-          return 0;
+          exit(0);
      }
 
      printf("ok\n");
@@ -605,15 +619,14 @@ declaratii_globale
      ;
 
 declaratie 
-     : TIP ID ';'                        { if( declarare_global_integers( $1, $2 , 0 , 0 ) == -1 ) exit(0); }
-     | TIP ID '=' expresie ';'           { int rez = evalAST($4); if( declarare_global_integers( $1, $2 , 0 , rez ) == -1 ) exit(0); }
-     | CONST TIP ID '=' expresie ';'     { int rez = evalAST($5); if( declarare_global_integers( $2, $3 , 1 , rez ) == -1 ) exit(0); }
-     | CONST TIP ID ';'                  { if( declarare_global_integers( $2, $3 , 1 , 9999999 ) == -1 ) exit(0); }
-     | CHAR ID ';'                       { if( declarare_char( $2 , "empty", 0) == -1 ) exit(0); }
-     | CHAR ID '=' STRING ';'            { if( declarare_char( $2 , $4, 0) == -1 ) exit(0); }        
-     | ARRAY TIP ID '[' NR ']' ';'       { declarare_vector( $2 , $3 , $5 , 0 ); }
+     : TIP ID ';'                        { declarare_global_integers( $1, $2 , 0 , 0 );}
+     | TIP ID '=' expresie ';'           { int rez = evalAST($4); declarare_global_integers( $1, $2 , 0 , rez );}
+     | CONST TIP ID '=' expresie ';'     { int rez = evalAST($5); declarare_global_integers( $2, $3 , 1 , rez ); }
+     | CONST TIP ID ';'                  { declarare_global_integers( $2, $3 , 1 , 9999999 );}
+     | CHAR ID ';'                       { declarare_char( $2 , "empty", 0);}
+     | CHAR ID '=' STRING ';'            { declarare_char( $2 , $4, 0);}        
+     | ARRAY TIP ID '[' NR ']' ';'       { declarare_vector( $2 , $3 , $5 , 0 );}
      ;
-
 
 // declaratii functii = bloc2
 
@@ -651,8 +664,8 @@ declaratie_metoda   : FCT TIP ID lista_tip_parametrii EFCT
                     | FCT CHAR ID lista_tip_parametrii EFCT
                     ;
 
-declaratie_functie : FCT TIP ID lista_tip_parametrii EFCT        { if( declarare_functie( $3, $2, $4) == -1 ) exit(0); }  
-                    | FCT CHAR ID lista_tip_parametrii EFCT      { if( declarare_functie( $3, $2, $4) == -1 ) exit(0); }
+declaratie_functie : FCT TIP ID lista_tip_parametrii EFCT        { declarare_functie( $3, $2, $4) ;}  
+                    | FCT CHAR ID lista_tip_parametrii EFCT      { declarare_functie( $3, $2, $4) ;}
                     ;
 
 lista_tip_parametrii
@@ -688,20 +701,20 @@ print_function
      ;
 
 declarari_main
-     : TIP ID ';'                       { if( declarare_main($1 , $2 , 0 , -9999999) == -1 ) exit(0); }
-     | TIP ID '=' expresie ';'          { int rez = evalAST($4); if( declarare_main($1 , $2 , 0 , rez) == -1 ) exit(0); }
-     | CONST TIP ID '=' expresie ';'    { int rez = evalAST($5); if( declarare_main($2 , $3 , 1 , rez) == -1 ) exit(0); } 
-     | CONST TIP ID ';'                 { if( declarare_main($2 , $3 , 1 , 9999999) == -1 ) exit(0);}     
-     | CHAR ID ';'                      { if( declarare_char( $2 , "empty", 1) == -1 ) exit(0); }
-     | CHAR ID '=' STRING ';'           { if( declarare_char( $2 , $4, 1 ) == -1 ) exit(0); }         
+     : TIP ID ';'                       { declarare_main($1 , $2 , 0 , -9999999);}
+     | TIP ID '=' expresie ';'          { int rez = evalAST($4); declarare_main($1 , $2 , 0 , rez);}
+     | CONST TIP ID '=' expresie ';'    { int rez = evalAST($5); declarare_main($2 , $3 , 1 , rez);} 
+     | CONST TIP ID ';'                 { declarare_main($2 , $3 , 1 , 9999999); }     
+     | CHAR ID ';'                      { declarare_char( $2 , "empty", 1); }
+     | CHAR ID '=' STRING ';'           { declarare_char( $2 , $4, 1 ); }         
      | ARRAY TIP ID '[' NR ']' ';'      { declarare_vector( $2 , $3 , $5 , 1 ); }    
      ;
 
 
 /* instructiune */
 statement
-     : ID '(' lista_apel ')' ';'                      { if( check_run_function( $1, $3 ) == 1 ) exit(0); }
-     | ID '(' ')' ';'                                 { if( check_run_function( $1, "null" ) == 1 ) exit(0); }
+     : ID '(' lista_apel ')' ';'                      { check_run_function( $1, $3 ) == 1 ; }
+     | ID '(' ')' ';'                                 { check_run_function( $1, "null" ) == 1; }
      | ID '=' expresie ';'                            { char temp[100]; bzero(temp, 100); strcpy(temp,$1);
                                                        if( strcmp("char",get_id_type(temp)) == 0 ) 
                                                        {  
@@ -712,11 +725,11 @@ statement
                                                        int rez = evalAST( $3 );
                                                        if( assign_expression( $1 , rez)  != 1 ) exit(0); 
                                                        }
-     | ID '=' ID '(' lista_apel ')' ';'               { if( check_if_type_concide( $1 , $3 , $5 ) == 0 ) exit(0); }
-     | ID '=' ID '(' ')' ';'                          { if( check_if_type_concide( $1 , $3 , "null" ) == 0 ) exit(0); }
+     | ID '=' ID '(' lista_apel ')' ';'               { check_if_type_concide( $1 , $3 , $5 ); }
+     | ID '=' ID '(' ')' ';'                          { check_if_type_concide( $1 , $3 , "null" ); }
      | ID '[' NR ']' '=' expresie ';'                 { int rez = evalAST( $6 ); assign_expression_to_array_el( $1 , $3 , rez ); }
-     | ID '[' NR ']' '=' ID '(' lista_apel ')' ';'    { if( check_if_type_concide( $1 , $6 , $8 ) == 0 ) exit(0); }
-     | ID '[' NR ']' '=' ID '(' ')' ';'               { if( check_if_type_concide( $1 , $6 , "null" ) == 0 ) exit(0); }
+     | ID '[' NR ']' '=' ID '(' lista_apel ')' ';'    { check_if_type_concide( $1 , $6 , $8 ) ; }
+     | ID '[' NR ']' '=' ID '(' ')' ';'               { check_if_type_concide( $1 , $6 , "null" ); }
      ;
      
 apel_instr_control
@@ -759,11 +772,12 @@ expresie :  expresie '+' expresie       { $$ = buildAST( "+" , $1 , $3 , OP ); }
 lista_apel
      : NR                               { strcpy($$,"int");  }
      | lista_apel ',' NR                { strcat($$,",int"); }
-     | ID                               { char temp[100]; bzero(temp,100); strcpy(temp, $1); strcpy($$, get_id_type(temp)); if( strcmp( $$ , "no type" ) == 0 )  { printf("EROARE identificator %s inexistent la linia !\n", temp, yylineno); exit(0); } }
-     | lista_apel ',' ID                { strcat($$,","); strcat($$, get_id_type($3)); if( strstr( $$ , "no type" ) != NULL ) { printf("EROARE identificator %s inexistent la linia %d\n", $3, yylineno); exit(0); } }
+     | ID                               { check_if_identifier_exists($$, $1);}
+     | lista_apel ',' ID                { identifier_help_function($$, $1); }
      ;
 
 %%
+
 int yyerror(char * s)
 {
      printf("eroare: %s la linia:%d\n\n",s,yylineno);
