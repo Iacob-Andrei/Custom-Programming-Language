@@ -724,23 +724,24 @@ declarari_main
 
 /* instructiune */
 statement
-     : ID '(' lista_apel ')' ';'                      { check_run_function( $1, $3 ) == 1 ; }
-     | ID '(' ')' ';'                                 { check_run_function( $1, "null" ) == 1; }
-     | ID '=' expresie ';'                            { char temp[100]; bzero(temp, 100); strcpy(temp,$1);
-                                                       if( strcmp("char",get_id_type(temp)) == 0 ) 
-                                                       {  
-                                                            sprintf(error_msg, "NU se pot face asignari la variabile de tip char, linia %d.", yylineno);
-                                                            print_error();
-                                                            exit(0);
+     : ID '(' lista_apel ')' ';'                       { check_run_function( $1, $3 ) == 1 ; }
+     | ID '(' ')' ';'                                  { check_run_function( $1, "null" ) == 1; }
+     | ID '=' expresie ';'                             { 
+                                                            char temp[100]; bzero(temp, 100); strcpy(temp,$1);
+                                                            if( strcmp("char",get_id_type(temp)) == 0 ) 
+                                                            {  
+                                                                 sprintf(error_msg, "NU se pot face asignari la variabile de tip char, linia %d.", yylineno);
+                                                                 print_error();
+                                                                 exit(0);
+                                                            }
+                                                            int rez = evalAST( $3 );
+                                                            if( assign_expression( $1 , rez)  != 1 ) exit(0); 
                                                        }
-                                                       int rez = evalAST( $3 );
-                                                       if( assign_expression( $1 , rez)  != 1 ) exit(0); 
-                                                       }
-     | ID '=' ID '(' lista_apel ')' ';'               { check_if_type_concide( $1 , $3 , $5 ); }
-     | ID '=' ID '(' ')' ';'                          { check_if_type_concide( $1 , $3 , "null" ); }
-     | ID '[' NR ']' '=' expresie ';'                 { int rez = evalAST( $6 ); assign_expression_to_array_el( $1 , $3 , rez ); }
-     | ID '[' NR ']' '=' ID '(' lista_apel ')' ';'    { check_if_type_concide( $1 , $6 , $8 ) ; }
-     | ID '[' NR ']' '=' ID '(' ')' ';'               { check_if_type_concide( $1 , $6 , "null" ); }
+     | ID '=' ID '(' lista_apel ')' ';'                { check_if_type_concide( $1 , $3 , $5 ); }
+     | ID '=' ID '(' ')' ';'                           { check_if_type_concide( $1 , $3 , "null" ); }
+     | ID '[' NR ']' '=' expresie ';'                  { int rez = evalAST( $6 ); assign_expression_to_array_el( $1 , $3 , rez ); }
+     | ID '[' NR ']' '=' ID '(' lista_apel ')' ';'     { check_if_type_concide( $1 , $6 , $8 ) ; }
+     | ID '[' NR ']' '=' ID '(' ')' ';'                { check_if_type_concide( $1 , $6 , "null" ); }
      ;
      
 apel_instr_control
@@ -748,24 +749,23 @@ apel_instr_control
      | IF '(' expresie ')' list ELSEIF list ENDIF
      | WHILE '(' expresie ')' list EWHILE
      | DO list EWHILE '(' expresie ')'
-     | FOR ID '=' NR TO ID DO list EFOR                     { 
-                                                                 check_inexistence_vars($2);
-                                                                 check_inexistence_vars($6);
-                                                            }
+     | FOR ID '=' NR TO ID DO list EFOR                { 
+                                                            check_inexistence_vars($2);
+                                                            check_inexistence_vars($6);
+                                                       }
 
-     | FOR ID '=' NR TO NR DO list EFOR                     { 
-                                                                 check_inexistence_vars($2);
-                                                            }
-     | FOR ID '=' ID TO ID DO list EFOR                     { 
-                                                                 check_inexistence_vars($2);
-                                                                 check_inexistence_vars($4);
-                                                                 check_inexistence_vars($6);
-                                                            }
-
-     | FOR ID '=' ID TO NR DO list EFOR                     { 
-                                                                 check_inexistence_vars($2);
-                                                                 check_inexistence_vars($4);
-                                                            }
+     | FOR ID '=' NR TO NR DO list EFOR                { 
+                                                            check_inexistence_vars($2);
+                                                       }
+     | FOR ID '=' ID TO ID DO list EFOR                { 
+                                                            check_inexistence_vars($2);
+                                                            check_inexistence_vars($4);
+                                                            check_inexistence_vars($6);
+                                                       }
+     | FOR ID '=' ID TO NR DO list EFOR                { 
+                                                            check_inexistence_vars($2);
+                                                            check_inexistence_vars($4);
+                                                       }
      ;
 
 expresie :  expresie '+' expresie                      { $$ = buildAST( "+" , $1 , $3 , OP ); }
@@ -844,21 +844,21 @@ expresie :  expresie '+' expresie                      { $$ = buildAST( "+" , $1
                                                             sprintf( nume , "%d" , calcul );
                                                             $$ = buildAST( nume , NULL , NULL, OTHERS );
                                                        }
-          | '(' expresie ')'            { $$ = $2; }
-          | ID                          { $$ = buildAST( $1 , NULL , NULL , IDENTIF ); }
-          | NR                          { 
-                                             char nume[100];
-                                             bzero(nume, 100);
-                                             sprintf( nume , "%d" , $1 );
-                                             $$ = buildAST( nume , NULL , NULL , NUMAR ); 
-                                        }
-          | ID '[' NR ']'               { 
-                                             int value = get_array_value($1,$3); 
-                                             char nume[100];
-                                             bzero(nume, 100);
-                                             sprintf( nume , "%d" , value );
-                                             $$ = buildAST( nume , NULL , NULL , NUMAR );
-                                        }
+          | '(' expresie ')'                           { $$ = $2; }
+          | ID                                         { $$ = buildAST( $1 , NULL , NULL , IDENTIF ); }
+          | NR                                         { 
+                                                            char nume[100];
+                                                            bzero(nume, 100);
+                                                            sprintf( nume , "%d" , $1 );
+                                                            $$ = buildAST( nume , NULL , NULL , NUMAR ); 
+                                                       }
+          | ID '[' NR ']'                              { 
+                                                            int value = get_array_value($1,$3); 
+                                                            char nume[100];
+                                                            bzero(nume, 100);
+                                                            sprintf( nume , "%d" , value );
+                                                            $$ = buildAST( nume , NULL , NULL , NUMAR );
+                                                       }
           ;
 
 lista_apel
