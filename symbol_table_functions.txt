@@ -1,2 +1,0 @@
-name: func1, return_type: int, parameter types: int,char
-name: func1, return_type: int, parameter types: char,int
