@@ -135,7 +135,8 @@ int check_if_identifier_exists(char* str1, char* str2)
      strcpy(str1, get_id_type(str2));
      if( strcmp( trim(str1), "no type" ) == 0 )  
      { 
-          sprintf("EROARE identificator %s inexistent la linia !\n", str2, yylineno); 
+          sprintf("EROARE identificator %s inexistent la linia !\n", str2, yylineno);
+          print_error(); 
           exit(0); 
      }
      return 1;
@@ -146,7 +147,8 @@ int identifier_help_function(char * str1, char *str2)
      strcat(str1,","); 
      strcat(str1, get_id_type(str2)); if( strstr( str1 , "no type" ) != NULL ) 
      { 
-          printf("EROARE identificator %s inexistent la linia %d\n", str2, yylineno); 
+          printf("EROARE identificator %s inexistent la linia %d\n", str2, yylineno);
+          print_error(); 
           exit(0); 
      }
 }
@@ -392,7 +394,7 @@ char* return_type_function( char *nume_functie, char *lista_tipuri_argumente )
      }
      sprintf(error_msg, "Functia %s nu exista. Linia %d", nume_functie, yylineno);
      print_error();
-     return "eroare";
+     exit(0);
 }
 
 int check_if_type_concide( char *var_name , char *func_name, char *lista_tip_parametrii )
