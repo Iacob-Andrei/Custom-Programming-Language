@@ -10,9 +10,9 @@ extern char* yytext;
 extern int yylineno;
 
 #define STRING_BUFFER 50
-#define FILE_MEMORY 500
 #define ERROR_BUFFER 100
 #define ARRAY_SIZE 100
+#define FILE_MEMORY 500
 
 enum nodetype{
      OP = 1,
@@ -309,7 +309,7 @@ int check_run_function(char *nume_functie, char *lista_tipuri_argumente)
                {
                     return 0;
                }
-               sprintf(error_msg, "Functia %s are alti parametrii.\n", nume_functie);
+               sprintf(error_msg, "Linia %d. Functia %s are alti parametrii.\n", yylineno, nume_functie);
                print_error();
                exit(0);
           }
