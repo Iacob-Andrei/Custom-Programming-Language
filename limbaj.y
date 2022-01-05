@@ -614,12 +614,12 @@ int evalAST( struct AST* tree )
 %type  <str> lista_tip_parametrii parametrii lista_apel
 %type  <tree> expresie
 
-%left '-'
-%left '+'
-%left '/'
-%left '*'
-%left LEQ GEQ NEQ EQ '<' '>'
-%left AND OR
+%left OR
+%left AND
+%left NEQ EQ
+%left LEQ GEQ '<' '>'
+%left '-' '+'
+%left '/' '*'
 
 %start progr
 %%
