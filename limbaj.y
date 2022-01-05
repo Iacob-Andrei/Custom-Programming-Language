@@ -731,8 +731,8 @@ declarari_main
 
 /* instructiune */
 statement
-     : ID '(' lista_apel ')' ';'                       { check_run_function( $1, $3 ) == 1 ; }
-     | ID '(' ')' ';'                                  { check_run_function( $1, "null" ) == 1; }
+     : ID '(' lista_apel ')' ';'                       { check_run_function( $1, $3 ) ; }
+     | ID '(' ')' ';'                                  { check_run_function( $1, "null" ) ; }
      | ID '=' expresie ';'                             { 
                                                             char temp[100]; bzero(temp, 100); strcpy(temp,$1);
                                                             if( strcmp("char",get_id_type(temp)) == 0 ) 
@@ -744,13 +744,9 @@ statement
                                                             int rez = evalAST( $3 );
                                                             if( assign_expression( $1 , rez)  != 1 ) exit(0); 
                                                        }
-     | ID '=' ID '(' lista_apel ')' ';'                { check_if_type_concide( $1 , $3 , $5 ); }
-     | ID '=' ID '(' ')' ';'                           { check_if_type_concide( $1 , $3 , "null" ); }
      | ID '[' NR ']' '=' expresie ';'                  { int rez = evalAST( $6 ); assign_expression_to_array_el( $1 , $3 , rez ); }
-     | ID '[' NR ']' '=' ID '(' lista_apel ')' ';'     { check_if_type_concide( $1 , $6 , $8 ) ; }
-     | ID '[' NR ']' '=' ID '(' ')' ';'                { check_if_type_concide( $1 , $6 , "null" ); }
      ;
-     
+
 apel_instr_control
      : IF '(' expresie ')' list ENDIF
      | IF '(' expresie ')' list ELSEIF list ENDIF
@@ -866,6 +862,8 @@ expresie :  expresie '+' expresie                      { $$ = buildAST( "+" , $1
                                                             sprintf( nume , "%d" , value );
                                                             $$ = buildAST( nume , NULL , NULL , NUMAR );
                                                        }
+          | ID '(' ')'                                 { check_run_function( $1, "null" ) ; $$ = buildAST( $1 , NULL , NULL , OTHERS ); }
+          | ID '(' lista_apel ')'                      { check_run_function( $1, $3 ) ;     $$ = buildAST( $1 , NULL , NULL , OTHERS ); }
           ;
 
 lista_apel
