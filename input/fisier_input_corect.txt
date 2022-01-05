@@ -1,0 +1,46 @@
+begin_global
+
+int x;
+int x1;
+int x2;
+int y;
+array int arr[10];
+
+end_global
+
+
+begin_fct
+
+function int testFunction(int, float) 
+end_function
+
+function int testFunction(int,int)
+end_function
+
+function int test(int, int )
+end_function
+
+
+end_fct
+
+main
+
+    arr[2] = 1; 
+    x = 10; 
+    x1 = 20; 
+    x2 = 30;
+
+    x1 = x + 5 * 10 + arr[2];
+    x = test(x1,3);
+
+    print("valoarea lui x1 este " , x1 );	
+    print("valoarea expresiei este " , x2 * 10 );	
+
+    if ( ( ( ( x1 < (5 + x1) ) & ( (x > 2) || (x1 < (4+x2) ) ) ) || (x == 2) ) )
+        x = 34 - y * arr[2];
+       print("x are valoare: ",  34 - y * arr[2] );
+    end_if
+
+
+end_main
+

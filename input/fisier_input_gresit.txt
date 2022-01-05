@@ -1,0 +1,36 @@
+begin_global
+
+int x = 23;
+int x1;
+int x1;
+int x2;
+float f1 = 50;
+char s = "ana";
+
+end_global
+
+begin_fct
+
+function int testFunction(int, float)
+end_function
+
+function int testFunction(int, float) 
+end_function
+
+function int testFunction(float, float)
+end_function
+
+function int test(int) 
+end_function
+
+end_fct
+
+main
+
+    int x3 = x + 2;
+	f1 = x + x2;
+	f1 = test (5);
+	x = s + f1;
+    test(f1);
+
+end_main

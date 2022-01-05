@@ -11,3 +11,5 @@ rm:
 	rm -f y.tab.c
 	rm -f limbaj
 	rm y.tab.h
+	rm symbol_table.txt
+	rm symbol_table_functions.txt

@@ -5,8 +5,12 @@
 %option noyywrap
 %%
 
-">"|"<"|"<="|">="|"!="|"=="          {return OPREL;} 
-"&"|"||"|"!"                         {return OPLOGIC;}
+"<="                                 {return LEQ;}
+">="                                 {return GEQ;}
+"!="                                 {return NEQ;}
+"=="                                 {return EQ;}
+"&"                                  {return AND;}
+"||"                                 {return OR;}
 
 "int"|"float"                        {yylval.str = strdup(yytext); return TIP;}
 "char"                               {yylval.str = strdup(yytext); return CHAR;}
@@ -42,10 +46,9 @@
 "end_defclass"                       {return ENDCLASS;}
 
 [_a-zA-Z][_a-zA-Z0-9]*               {yylval.str = strdup(yytext); return ID;}
-\"[ _a-zA-Z0-9=]+\"                  {yylval.str = strdup(yytext); yylval.str++; yylval.str[strlen(yylval.str)-1] = 0; return STRING;}
+\"[ _a-zA-Z0-9=:]+\"                  {yylval.str = strdup(yytext); yylval.str++; yylval.str[strlen(yylval.str)-1] = 0; return STRING;}
 
 [-]?[0-9]+[.]?[0-9]?[0-9]?           {yylval.intnr = atoi(yytext); return NR;}
 [ \t] ;
 \n                                   {yylineno++;}
 .                                    {return yytext[0];}
-

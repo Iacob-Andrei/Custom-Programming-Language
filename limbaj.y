@@ -107,7 +107,7 @@ int check_constant(char *nume)
      {
           sprintf(error_msg, "Variabila %s nu exista pentru a verifica daca e constanta sau nu la linia %d", nume, yylineno);
           print_error();
-          return -1;
+          exit(0);
      }
      for (int i = 0; i < var_counter; i++)
      {
@@ -225,6 +225,11 @@ int declarare_global_integers(char *type_var, char *id, int check_const, int act
           strcpy(table_of_variables[var_counter].type, trim(type_var)); // 0 means int
      }
      else
+     if (strcmp(trim(type_var), "float") == 0)
+     {
+          strcpy(table_of_variables[var_counter].type, trim(type_var)); // 0 means int
+     }
+     else
      {
           sprintf(error_msg, "Trying to assign a non-int type in a \"declare_integer\" function %s at line %d", id, yylineno);
           print_error();
@@ -304,7 +309,7 @@ int check_run_function(char *nume_functie, char *lista_tipuri_argumente)
                }
                sprintf(error_msg, "Functia %s are alti parametrii.\n", nume_functie);
                print_error();
-               return 1;
+               exit(0);
           }
      }
      sprintf(error_msg, "Functia %s nu exista. Linia %d\n", nume_functie, yylineno);
@@ -354,7 +359,7 @@ int assign_expression(char *name, int value)
      {
           sprintf(error_msg, "Impossible to assign a value to a constant variable: %s, line %d", name, yylineno);
           print_error();
-          return -1;
+          exit(0);
      }
 
      for (int i = 0; i < var_counter; i++)
@@ -599,7 +604,8 @@ int evalAST( struct AST* tree )
 %token FCT EFCT CLASS ENDCLASS 
 %token IF ELSEIF ENDIF WHILE EWHILE FOR EFOR TO DO
 %token BGNGLO ENDGLO BGNFCT ENDFCT MAIN ENDMAIN 
-%token OPLOGIC OPREL 
+%token LEQ GEQ NEQ EQ
+%token AND OR
 
 %token <str> ID TIP STRING CHAR
 %token <intnr> NR
@@ -610,8 +616,8 @@ int evalAST( struct AST* tree )
 %left '+'
 %left '/'
 %left '*'
-%left OPLOGIC
-%left OPREL
+%left LEQ GEQ NEQ EQ '<' '>'
+%left AND OR
 
 %start progr
 %%
@@ -723,85 +729,146 @@ declarari_main
 
 /* instructiune */
 statement
-     : ID '(' lista_apel ')' ';'                      { check_run_function( $1, $3 ) == 1 ; }
-     | ID '(' ')' ';'                                 { check_run_function( $1, "null" ) == 1; }
-     | ID '=' expresie ';'                            { char temp[100]; bzero(temp, 100); strcpy(temp,$1);
-                                                       if( strcmp("char",get_id_type(temp)) == 0 ) 
-                                                       {  
-                                                            sprintf(error_msg, "NU se pot face asignari la variabile de tip char, linia %d.", yylineno);
-                                                            print_error();
-                                                            exit(0);
+     : ID '(' lista_apel ')' ';'                       { check_run_function( $1, $3 ) == 1 ; }
+     | ID '(' ')' ';'                                  { check_run_function( $1, "null" ) == 1; }
+     | ID '=' expresie ';'                             { 
+                                                            char temp[100]; bzero(temp, 100); strcpy(temp,$1);
+                                                            if( strcmp("char",get_id_type(temp)) == 0 ) 
+                                                            {  
+                                                                 sprintf(error_msg, "NU se pot face asignari la variabile de tip char, linia %d.", yylineno);
+                                                                 print_error();
+                                                                 exit(0);
+                                                            }
+                                                            int rez = evalAST( $3 );
+                                                            if( assign_expression( $1 , rez)  != 1 ) exit(0); 
                                                        }
-                                                       int rez = evalAST( $3 );
-                                                       if( assign_expression( $1 , rez)  != 1 ) exit(0); 
-                                                       }
-     | ID '=' ID '(' lista_apel ')' ';'               { check_if_type_concide( $1 , $3 , $5 ); }
-     | ID '=' ID '(' ')' ';'                          { check_if_type_concide( $1 , $3 , "null" ); }
-     | ID '[' NR ']' '=' expresie ';'                 { int rez = evalAST( $6 ); assign_expression_to_array_el( $1 , $3 , rez ); }
-     | ID '[' NR ']' '=' ID '(' lista_apel ')' ';'    { check_if_type_concide( $1 , $6 , $8 ) ; }
-     | ID '[' NR ']' '=' ID '(' ')' ';'               { check_if_type_concide( $1 , $6 , "null" ); }
+     | ID '=' ID '(' lista_apel ')' ';'                { check_if_type_concide( $1 , $3 , $5 ); }
+     | ID '=' ID '(' ')' ';'                           { check_if_type_concide( $1 , $3 , "null" ); }
+     | ID '[' NR ']' '=' expresie ';'                  { int rez = evalAST( $6 ); assign_expression_to_array_el( $1 , $3 , rez ); }
+     | ID '[' NR ']' '=' ID '(' lista_apel ')' ';'     { check_if_type_concide( $1 , $6 , $8 ) ; }
+     | ID '[' NR ']' '=' ID '(' ')' ';'                { check_if_type_concide( $1 , $6 , "null" ); }
      ;
      
 apel_instr_control
-     : IF '(' conditie ')' list ENDIF
-     | IF '(' conditie ')' list ELSEIF list ENDIF
-     | WHILE '(' conditie ')' list EWHILE
-     | DO list EWHILE '(' conditie ')'
-     | FOR ID '=' NR TO ID DO list EFOR                     { 
-                                                                 check_inexistence_vars($2);
-                                                                 
-                                                                 check_inexistence_vars($6);
-                                                            }
+     : IF '(' expresie ')' list ENDIF
+     | IF '(' expresie ')' list ELSEIF list ENDIF
+     | WHILE '(' expresie ')' list EWHILE
+     | DO list EWHILE '(' expresie ')'
+     | FOR ID '=' NR TO ID DO list EFOR                { 
+                                                            check_inexistence_vars($2);
+                                                            check_inexistence_vars($6);
+                                                       }
 
-     | FOR ID '=' NR TO NR DO list EFOR                     { 
-                                                                 check_inexistence_vars($2);
-                                                                    
-                                                            }
-
-     | FOR ID '=' ID TO ID DO list EFOR                     { 
-                                                                 check_inexistence_vars($2);
-
-                                                                 check_inexistence_vars($4);
-
-                                                                 check_inexistence_vars($6);
-                                                            }
-
-     | FOR ID '=' ID TO NR DO list EFOR                     { 
-                                                                 check_inexistence_vars($2);
-
-                                                                 check_inexistence_vars($4);
-                                                            }
+     | FOR ID '=' NR TO NR DO list EFOR                { 
+                                                            check_inexistence_vars($2);
+                                                       }
+     | FOR ID '=' ID TO ID DO list EFOR                { 
+                                                            check_inexistence_vars($2);
+                                                            check_inexistence_vars($4);
+                                                            check_inexistence_vars($6);
+                                                       }
+     | FOR ID '=' ID TO NR DO list EFOR                { 
+                                                            check_inexistence_vars($2);
+                                                            check_inexistence_vars($4);
+                                                       }
      ;
 
-
-conditie  : '(' expresie ')'
-          | conditie OPREL conditie
-          ;
-
-expresie :  expresie '+' expresie       { $$ = buildAST( "+" , $1 , $3 , OP ); }
-          | expresie '-' expresie       { $$ = buildAST( "-" , $1 , $3 , OP ); }
-          | expresie '*' expresie       { $$ = buildAST( "*" , $1 , $3 , OP ); }
-          | expresie '/' expresie       { $$ = buildAST( "/" , $1 , $3 , OP ); }
-          | '(' expresie ')'            { $$ = $2; }
-          | ID                          { $$ = buildAST( $1 , NULL , NULL , IDENTIF ); }
-          | NR                          { 
-                                             char nume[100];
-                                             bzero(nume, 100);
-                                             sprintf( nume , "%d" , $1 );
-                                             $$ = buildAST( nume , NULL , NULL , NUMAR ); 
-                                        }
-          | ID '[' NR ']'               { 
-                                        int value = get_array_value($1,$3); 
-                                        char nume[100];
-                                        bzero(nume, 100);
-                                        sprintf( nume , "%d" , value );
-                                        $$ = buildAST( nume , NULL , NULL , NUMAR );
-                                        }
+expresie :  expresie '+' expresie                      { $$ = buildAST( "+" , $1 , $3 , OP ); }
+          | expresie '-' expresie                      { $$ = buildAST( "-" , $1 , $3 , OP ); }
+          | expresie '*' expresie                      { $$ = buildAST( "*" , $1 , $3 , OP ); }
+          | expresie '/' expresie                      { $$ = buildAST( "/" , $1 , $3 , OP ); }
+          | '(' expresie  '>'  expresie ')'            { 
+                                                            int rez1 = evalAST($2);
+                                                            int rez2 = evalAST($4); 
+                                                            int calcul = ( rez1 > rez2 );
+                                                            char nume[100];
+                                                            bzero(nume, 100);
+                                                            sprintf( nume , "%d" , calcul );
+                                                            $$ = buildAST( nume , NULL , NULL, OTHERS );
+                                                       }
+          |'(' expresie  '<' expresie ')'              { 
+                                                            int rez1 = evalAST($2);
+                                                            int rez2 = evalAST($4); 
+                                                            int calcul = ( rez1 < rez2 );
+                                                            char nume[100];
+                                                            bzero(nume, 100);
+                                                            sprintf( nume , "%d" , calcul );
+                                                            $$ = buildAST( nume , NULL , NULL, OTHERS );
+                                                       }
+          | '(' expresie LEQ  expresie ')'             { 
+                                                            int rez1 = evalAST($2);
+                                                            int rez2 = evalAST($4); 
+                                                            int calcul = ( rez1 <= rez2 );
+                                                            char nume[100];
+                                                            bzero(nume, 100);
+                                                            sprintf( nume , "%d" , calcul );
+                                                            $$ = buildAST( nume , NULL , NULL, OTHERS );
+                                                       }
+          | '(' expresie GEQ  expresie ')'             { 
+                                                            int rez1 = evalAST($2);
+                                                            int rez2 = evalAST($4); 
+                                                            int calcul = ( rez1 >= rez2 );
+                                                            char nume[100];
+                                                            bzero(nume, 100);
+                                                            sprintf( nume , "%d" , calcul );
+                                                            $$ = buildAST( nume , NULL , NULL, OTHERS );
+                                                       }
+          | '(' expresie  NEQ expresie ')'            { 
+                                                            int rez1 = evalAST($2);
+                                                            int rez2 = evalAST($4); 
+                                                            int calcul = ( rez1 != rez2 );
+                                                            char nume[100];
+                                                            bzero(nume, 100);
+                                                            sprintf( nume , "%d" , calcul );
+                                                            $$ = buildAST( nume , NULL , NULL, OTHERS );
+                                                       }
+          | '(' expresie  EQ  expresie ')'            { 
+                                                            int rez1 = evalAST($2);
+                                                            int rez2 = evalAST($4); 
+                                                            int calcul = ( rez1 == rez2 );
+                                                            char nume[100];
+                                                            bzero(nume, 100);
+                                                            sprintf( nume , "%d" , calcul );
+                                                            $$ = buildAST( nume , NULL , NULL, OTHERS );
+                                                       }
+          | '(' expresie  AND  expresie ')'           { 
+                                                            int rez1 = evalAST($2);
+                                                            int rez2 = evalAST($4); 
+                                                            int calcul = ( rez1 & rez2 );
+                                                            char nume[100];
+                                                            bzero(nume, 100);
+                                                            sprintf( nume , "%d" , calcul );
+                                                            $$ = buildAST( nume , NULL , NULL, OTHERS );
+                                                       }
+          | '(' expresie OR expresie ')'               { 
+                                                            int rez1 = evalAST($2);
+                                                            int rez2 = evalAST($4); 
+                                                            int calcul = ( rez1 || rez2 );
+                                                            char nume[100];
+                                                            bzero(nume, 100);
+                                                            sprintf( nume , "%d" , calcul );
+                                                            $$ = buildAST( nume , NULL , NULL, OTHERS );
+                                                       }
+          | '(' expresie ')'                           { $$ = $2; }
+          | ID                                         { $$ = buildAST( $1 , NULL , NULL , IDENTIF ); }
+          | NR                                         { 
+                                                            char nume[100];
+                                                            bzero(nume, 100);
+                                                            sprintf( nume , "%d" , $1 );
+                                                            $$ = buildAST( nume , NULL , NULL , NUMAR ); 
+                                                       }
+          | ID '[' NR ']'                              { 
+                                                            int value = get_array_value($1,$3); 
+                                                            char nume[100];
+                                                            bzero(nume, 100);
+                                                            sprintf( nume , "%d" , value );
+                                                            $$ = buildAST( nume , NULL , NULL , NUMAR );
+                                                       }
           ;
 
 lista_apel
-     : NR                               { strcpy($$,"int");  }
-     | lista_apel ',' NR                { strcat($$,",int"); }
+     : NR                               { $$ = malloc(50); strcpy($$,"int");  }
+     | lista_apel ',' NR                { $$ = malloc(50); strcat($$,",int"); }
      | ID                               { check_if_identifier_exists($$, $1);}
      | lista_apel ',' ID                { identifier_help_function($$, $1); }
      ;
@@ -823,8 +890,8 @@ void print_variables()
           printf("Unable to create file.\n");
           exit(EXIT_FAILURE);
      }
-     printf("------------------------------------------------------");
-     printf("\nVariabilele declarate:\n");
+     //printf("------------------------------------------------------");
+     //printf("\nVariabilele declarate:\n");
 
      for (int i = 0; i < var_counter; i++)
      {
@@ -834,7 +901,7 @@ void print_variables()
           if( strcmp(table_of_variables[i].str_val,"array") == 0 )
           {
                sprintf(buffer , "name: %s, number of elements: %d, scope: %d, cu elementele:\n" , table_of_variables[i].name, table_of_variables[i].array_size,  table_of_variables[i].scope);
-               printf("%s",buffer);
+               //printf("%s",buffer);
                fputs(buffer, fPtr);
 
                for(int j = 0 ; j < table_of_variables[i].array_size ; j++ )
@@ -842,7 +909,7 @@ void print_variables()
                     bzero(buffer, FILE_MEMORY);
                     sprintf( buffer , "\t %s[%d] = %d\n", table_of_variables[i].name , j , table_of_variables[i].array[j] );
 
-                    printf("%s",buffer);
+                    //printf("%s",buffer);
                     fputs(buffer, fPtr);
                }
           }
@@ -851,13 +918,13 @@ void print_variables()
                sprintf(buffer, "name: %s, type: %s, const: %d, val: %s, scope: %d\n",
                          table_of_variables[i].name, table_of_variables[i].type,
                          table_of_variables[i].if_const, table_of_variables[i].str_val, table_of_variables[i].scope);
-               printf("%s",buffer);
+               //printf("%s",buffer);
                fputs(buffer, fPtr);
           }
      }
-     printf("------------------------------------------------------");
+     //printf("------------------------------------------------------");
      fclose(fPtr);
-     printf("\n\n");
+     //printf("\n\n");
 }
 
 void print_functions()
@@ -870,8 +937,8 @@ void print_functions()
           exit(EXIT_FAILURE);
      }
 
-     printf("------------------------------------------------------");
-     printf("\nFunctiile declarate sunt:\n");
+     //printf("------------------------------------------------------");
+     //printf("\nFunctiile declarate sunt:\n");
 
      for (int i = 0; i < func_counter; i++)
      {
@@ -882,12 +949,12 @@ void print_functions()
                     table_of_functons[i].func_name, table_of_functons[i].func_return_type,
                     table_of_functons[i].list_of_types);
 
-          printf("%s", buffer);
+          //printf("%s", buffer);
           fputs(buffer, fPtr);
      }
-     printf("------------------------------------------------------");
+     //printf("------------------------------------------------------");
      fclose(fPtr);
-     printf("\n\n");
+     //printf("\n\n");
 }
 
 void print_all()
