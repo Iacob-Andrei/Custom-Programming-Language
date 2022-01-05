@@ -779,72 +779,72 @@ expresie :  expresie '+' expresie                      { $$ = buildAST( "+" , $1
           | expresie '-' expresie                      { $$ = buildAST( "-" , $1 , $3 , OP ); }
           | expresie '*' expresie                      { $$ = buildAST( "*" , $1 , $3 , OP ); }
           | expresie '/' expresie                      { $$ = buildAST( "/" , $1 , $3 , OP ); }
-          | '(' expresie  '>'  expresie ')'            { 
-                                                            int rez1 = evalAST($2);
-                                                            int rez2 = evalAST($4); 
+          | expresie  '>'  expresie                    { 
+                                                            int rez1 = evalAST($1);
+                                                            int rez2 = evalAST($3); 
                                                             int calcul = ( rez1 > rez2 );
                                                             char nume[100];
                                                             bzero(nume, 100);
                                                             sprintf( nume , "%d" , calcul );
                                                             $$ = buildAST( nume , NULL , NULL, OTHERS );
                                                        }
-          |'(' expresie  '<' expresie ')'              { 
-                                                            int rez1 = evalAST($2);
-                                                            int rez2 = evalAST($4); 
+          | expresie  '<' expresie                     { 
+                                                            int rez1 = evalAST($1);
+                                                            int rez2 = evalAST($3); 
                                                             int calcul = ( rez1 < rez2 );
                                                             char nume[100];
                                                             bzero(nume, 100);
                                                             sprintf( nume , "%d" , calcul );
                                                             $$ = buildAST( nume , NULL , NULL, OTHERS );
                                                        }
-          | '(' expresie LEQ  expresie ')'             { 
-                                                            int rez1 = evalAST($2);
-                                                            int rez2 = evalAST($4); 
+          |  expresie LEQ  expresie                    { 
+                                                            int rez1 = evalAST($1);
+                                                            int rez2 = evalAST($3); 
                                                             int calcul = ( rez1 <= rez2 );
                                                             char nume[100];
                                                             bzero(nume, 100);
                                                             sprintf( nume , "%d" , calcul );
                                                             $$ = buildAST( nume , NULL , NULL, OTHERS );
                                                        }
-          | '(' expresie GEQ  expresie ')'             { 
-                                                            int rez1 = evalAST($2);
-                                                            int rez2 = evalAST($4); 
+          |  expresie GEQ  expresie                    { 
+                                                            int rez1 = evalAST($1);
+                                                            int rez2 = evalAST($3); 
                                                             int calcul = ( rez1 >= rez2 );
                                                             char nume[100];
                                                             bzero(nume, 100);
                                                             sprintf( nume , "%d" , calcul );
                                                             $$ = buildAST( nume , NULL , NULL, OTHERS );
                                                        }
-          | '(' expresie  NEQ expresie ')'            { 
-                                                            int rez1 = evalAST($2);
-                                                            int rez2 = evalAST($4); 
+          |  expresie  NEQ expresie                    { 
+                                                            int rez1 = evalAST($1);
+                                                            int rez2 = evalAST($3); 
                                                             int calcul = ( rez1 != rez2 );
                                                             char nume[100];
                                                             bzero(nume, 100);
                                                             sprintf( nume , "%d" , calcul );
                                                             $$ = buildAST( nume , NULL , NULL, OTHERS );
                                                        }
-          | '(' expresie  EQ  expresie ')'            { 
-                                                            int rez1 = evalAST($2);
-                                                            int rez2 = evalAST($4); 
+          |  expresie  EQ  expresie                    { 
+                                                            int rez1 = evalAST($1);
+                                                            int rez2 = evalAST($3); 
                                                             int calcul = ( rez1 == rez2 );
                                                             char nume[100];
                                                             bzero(nume, 100);
                                                             sprintf( nume , "%d" , calcul );
                                                             $$ = buildAST( nume , NULL , NULL, OTHERS );
                                                        }
-          | '(' expresie  AND  expresie ')'           { 
-                                                            int rez1 = evalAST($2);
-                                                            int rez2 = evalAST($4); 
+          |  expresie  AND  expresie                   { 
+                                                            int rez1 = evalAST($1);
+                                                            int rez2 = evalAST($3); 
                                                             int calcul = ( rez1 & rez2 );
                                                             char nume[100];
                                                             bzero(nume, 100);
                                                             sprintf( nume , "%d" , calcul );
                                                             $$ = buildAST( nume , NULL , NULL, OTHERS );
                                                        }
-          | '(' expresie OR expresie ')'               { 
-                                                            int rez1 = evalAST($2);
-                                                            int rez2 = evalAST($4); 
+          |  expresie OR expresie                      { 
+                                                            int rez1 = evalAST($1);
+                                                            int rez2 = evalAST($3); 
                                                             int calcul = ( rez1 || rez2 );
                                                             char nume[100];
                                                             bzero(nume, 100);
@@ -870,7 +870,7 @@ expresie :  expresie '+' expresie                      { $$ = buildAST( "+" , $1
 
 lista_apel
      : NR                               { $$ = malloc(50); strcpy($$,"int");  }
-     | lista_apel ',' NR                { $$ = malloc(50); strcat($$,",int"); }
+     | lista_apel ',' NR                { strcat($$,",int"); }
      | ID                               { check_if_identifier_exists($$, $1);}
      | lista_apel ',' ID                { identifier_help_function($$, $1); }
      ;
