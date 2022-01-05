@@ -1,5 +1,6 @@
 begin_global
 
+const int ccc;
 int x = 23;
 int x1;
 int x1;

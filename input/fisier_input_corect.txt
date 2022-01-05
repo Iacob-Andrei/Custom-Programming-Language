@@ -4,6 +4,7 @@ int x;
 int x1;
 int x2;
 int y;
+
 array int arr[10];
 
 end_global
@@ -17,7 +18,7 @@ end_function
 function int testFunction(int,int)
 end_function
 
-function int test(int, int )
+function int test(int , int )
 end_function
 
 
@@ -30,15 +31,16 @@ main
     x1 = 20; 
     x2 = 30;
 
-    x1 = x + 5 * 10 + arr[2];
     x = test(x1,3);
+
+    x1 = x + 5 * 10 + arr[2] + test(2,3);
 
     print("valoarea lui x1 este " , x1 );	
     print("valoarea expresiei este " , x2 * 10 );	
 
-    if ( ( ( ( x1 < (5 + x1) ) & ( (x > 2) || (x1 < (4+x2) ) ) ) || (x == 2) ) )
+    if ( x1 < 5 + x1 & ( x > 2 || x1 < 4 + x2 ) || x == 2 )
         x = 34 - y * arr[2];
-       print("x are valoare: ",  34 - y * arr[2] );
+        print("x are valoare: ", x );
     end_if
 
 
